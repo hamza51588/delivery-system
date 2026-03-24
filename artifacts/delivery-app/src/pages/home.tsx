@@ -6,25 +6,19 @@ import { Send, MapPin, Phone, User, Package as PackageIcon, FileText, CheckCircl
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useCreateOrder } from "@/hooks/use-orders";
-import { usePhones } from "@/hooks/use-phones";
 import { useSettings } from "@/hooks/use-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   customerName: z.string().min(2, "الاسم مطلوب ويجب أن يكون حرفين على الأقل"),
-  customerPhone: z.string().min(6, "رقم الهاتف مطلوب ويفضل أن يكون صحيحاً"),
+  customerPhone: z.string().min(6, "رقم الهاتف مطلوب"),
   address: z.string().min(5, "الرجاء كتابة العنوان بالتفصيل"),
   orderDetails: z.string().min(3, "الرجاء كتابة تفاصيل الطلب"),
   notes: z.string().optional(),
@@ -35,9 +29,9 @@ type FormValues = z.infer<typeof formSchema>;
 export default function Home() {
   const { toast } = useToast();
   const createOrder = useCreateOrder();
-  const { data: phones } = usePhones();
   const { data: settings } = useSettings();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [orderNum, setOrderNum] = useState<number | null>(null);
 
   const heroTitle = settings?.heroTitle || "توصيل سريع،";
   const heroTitleHighlight = settings?.heroTitleHighlight || "مضمون وموثوق";
@@ -45,8 +39,7 @@ export default function Home() {
   const availabilityText = settings?.availabilityText || "متاحون الآن للخدمة";
   const formTitle = settings?.formTitle || "سجل طلبك الآن";
   const formSubtitle = settings?.formSubtitle || "أدخل تفاصيل الطلب وسنتواصل معك فوراً";
-  const successMessage = settings?.successMessage || "تم استلام طلبك بنجاح، وجاري تحويلك إلى الواتساب...";
-  const whatsappTemplate = settings?.whatsappTemplate || "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}";
+  const successMessage = settings?.successMessage || "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!";
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -55,30 +48,11 @@ export default function Home() {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      await createOrder.mutateAsync({ data });
-
-      const text = whatsappTemplate
-        .replace("{customerName}", data.customerName)
-        .replace("{customerPhone}", data.customerPhone)
-        .replace("{address}", data.address)
-        .replace("{orderDetails}", data.orderDetails)
-        .replace("{notes}", data.notes || "لا يوجد");
-
-      const encoded = encodeURIComponent(text);
-      const targetPhones = phones && phones.length > 0
-        ? phones.map(p => p.phoneNumber)
-        : ["967775864948"];
-
-      targetPhones.forEach((phone, index) => {
-        const cleanPhone = phone.replace(/\D/g, "");
-        const url = `https://wa.me/${cleanPhone}?text=${encoded}`;
-        setTimeout(() => { window.open(url, "_blank"); }, index * 200);
-      });
-
+      const order = await createOrder.mutateAsync({ data });
+      setOrderNum((order as { id: number }).id);
       setIsSuccess(true);
-      toast({ title: "تم إرسال الطلب بنجاح!", description: "سيتم التواصل معك قريباً لتأكيد الطلب." });
-
-      setTimeout(() => { form.reset(); setIsSuccess(false); }, 5000);
+      toast({ title: "✅ تم إرسال طلبك بنجاح!" });
+      setTimeout(() => { form.reset(); setIsSuccess(false); setOrderNum(null); }, 8000);
     } catch {
       toast({ title: "حدث خطأ", description: "تعذر إرسال الطلب، الرجاء المحاولة لاحقاً.", variant: "destructive" });
     }
@@ -86,6 +60,7 @@ export default function Home() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      {/* Right: Info */}
       <div className="order-2 lg:order-1 flex flex-col items-center lg:items-start text-center lg:text-start space-y-8">
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-primary font-bold text-sm">
@@ -105,7 +80,6 @@ export default function Home() {
             {heroDescription}
           </p>
         </div>
-
         <div className="relative w-full max-w-md aspect-square mx-auto lg:mx-0">
           <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-orange-50 rounded-full blur-3xl opacity-50"></div>
           <img
@@ -116,6 +90,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Left: Form */}
       <div className="order-1 lg:order-2 w-full max-w-lg mx-auto">
         <Card className="border-0 shadow-2xl shadow-primary/10 rounded-3xl overflow-hidden bg-white/90 backdrop-blur-xl">
           <CardContent className="p-8 sm:p-10 relative">
@@ -123,20 +98,24 @@ export default function Home() {
               {isSuccess ? (
                 <motion.div
                   key="success"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="flex flex-col items-center justify-center text-center py-12 space-y-6"
+                  initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex flex-col items-center justify-center text-center py-10 space-y-5"
                 >
-                  <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
+                  <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center">
                     <CheckCircle2 className="w-12 h-12" />
                   </div>
                   <h3 className="text-3xl font-bold text-gray-900">شكراً لك!</h3>
+                  {orderNum && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-2xl px-6 py-3">
+                      <p className="text-sm text-gray-500 font-medium">رقم طلبك</p>
+                      <p className="text-3xl font-extrabold text-primary">#{orderNum}</p>
+                    </div>
+                  )}
                   <p className="text-lg text-gray-600 font-medium">{successMessage}</p>
                   <Button
                     variant="outline"
-                    className="mt-4 rounded-xl border-2 hover:bg-gray-50 font-bold"
-                    onClick={() => { setIsSuccess(false); form.reset(); }}
+                    className="mt-2 rounded-xl border-2 hover:bg-gray-50 font-bold"
+                    onClick={() => { setIsSuccess(false); form.reset(); setOrderNum(null); }}
                   >
                     طلب جديد
                   </Button>
@@ -147,81 +126,54 @@ export default function Home() {
                     <h3 className="text-2xl font-bold text-gray-900">{formTitle}</h3>
                     <p className="text-gray-500 mt-2 font-medium">{formSubtitle}</p>
                   </div>
-
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <FormField control={form.control} name="customerName" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
-                              <User className="w-4 h-4 text-primary" /> الاسم
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="محمد أحمد" className="h-12 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
-                            </FormControl>
+                            <FormLabel className="flex items-center gap-2 text-gray-700 font-bold"><User className="w-4 h-4 text-primary" /> الاسم</FormLabel>
+                            <FormControl><Input placeholder="محمد أحمد" className="h-12 rounded-xl border-gray-200 focus:border-primary bg-gray-50/50" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="customerPhone" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
-                              <Phone className="w-4 h-4 text-primary" /> رقم الهاتف
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="05X XXX XXXX" dir="ltr" className="h-12 rounded-xl text-right border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
-                            </FormControl>
+                            <FormLabel className="flex items-center gap-2 text-gray-700 font-bold"><Phone className="w-4 h-4 text-primary" /> رقم الهاتف</FormLabel>
+                            <FormControl><Input placeholder="07X XXX XXXX" dir="ltr" className="h-12 rounded-xl text-right border-gray-200 focus:border-primary bg-gray-50/50" {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                       </div>
-
                       <FormField control={form.control} name="address" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
-                            <MapPin className="w-4 h-4 text-primary" /> العنوان بالتفصيل
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="المدينة، الحي، الشارع، المعلم البارز" className="h-12 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
-                          </FormControl>
+                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold"><MapPin className="w-4 h-4 text-primary" /> العنوان بالتفصيل</FormLabel>
+                          <FormControl><Input placeholder="المدينة، الحي، الشارع، المعلم البارز" className="h-12 rounded-xl border-gray-200 focus:border-primary bg-gray-50/50" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
-
                       <FormField control={form.control} name="orderDetails" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
-                            <PackageIcon className="w-4 h-4 text-primary" /> ماذا تريد أن نوصل لك؟
-                          </FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="اكتب تفاصيل الطلب هنا..." className="min-h-[100px] resize-none rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
-                          </FormControl>
+                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold"><PackageIcon className="w-4 h-4 text-primary" /> ماذا تريد أن نوصل لك؟</FormLabel>
+                          <FormControl><Textarea placeholder="اكتب تفاصيل الطلب هنا..." className="min-h-[100px] resize-none rounded-xl border-gray-200 focus:border-primary bg-gray-50/50" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
-
                       <FormField control={form.control} name="notes" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
-                            <FileText className="w-4 h-4 text-primary" /> ملاحظات إضافية (اختياري)
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="أي تعليمات إضافية للسائق..." className="h-12 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
-                          </FormControl>
+                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold"><FileText className="w-4 h-4 text-primary" /> ملاحظات إضافية (اختياري)</FormLabel>
+                          <FormControl><Input placeholder="أي تعليمات إضافية للسائق..." className="h-12 rounded-xl border-gray-200 focus:border-primary bg-gray-50/50" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
-
                       <Button
-                        type="submit"
-                        disabled={createOrder.isPending}
+                        type="submit" disabled={createOrder.isPending}
                         className="w-full h-14 text-lg font-bold rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover:-translate-y-0.5 mt-4 group"
                       >
                         {createOrder.isPending ? (
                           <span className="flex items-center gap-2">جاري الإرسال <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span></span>
                         ) : (
                           <span className="flex items-center gap-2">
-                            إرسال الطلب للواتساب
-                            <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            إرسال الطلب <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                           </span>
                         )}
                       </Button>

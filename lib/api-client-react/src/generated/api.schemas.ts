@@ -17,6 +17,12 @@ export interface CreateOrderRequest {
   notes?: string;
 }
 
+export interface UpdateOrderRequest {
+  status?: string;
+  assignedDriverId?: number;
+  assignedDriverName?: string;
+}
+
 export interface Order {
   id: number;
   customerName: string;
@@ -25,6 +31,8 @@ export interface Order {
   orderDetails: string;
   notes?: string;
   status: string;
+  assignedDriverId?: number;
+  assignedDriverName?: string;
   createdAt: string;
 }
 
@@ -37,6 +45,18 @@ export interface Phone {
   id: number;
   phoneNumber: string;
   label?: string;
+  createdAt: string;
+}
+
+export interface AddDriverRequest {
+  name: string;
+  phone?: string;
+}
+
+export interface Driver {
+  id: number;
+  name: string;
+  phone?: string;
   createdAt: string;
 }
 
@@ -53,6 +73,8 @@ export interface SiteSettings {
   primaryColor: string;
   whatsappTemplate: string;
   footerText: string;
+  adminPin: string;
+  logoImage: string;
 }
 
 export interface ErrorResponse {

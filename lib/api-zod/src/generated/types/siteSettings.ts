@@ -19,4 +19,6 @@ export interface SiteSettings {
   primaryColor: string;
   whatsappTemplate: string;
   footerText: string;
+  adminPin: string;
+  logoImage: string;
 }

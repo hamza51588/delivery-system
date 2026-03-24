@@ -8,20 +8,16 @@ servers:
     description: Base API path
 tags:
   - name: health
-    description: Health operations
   - name: orders
-    description: Order operations
   - name: phones
-    description: WhatsApp phone number management
   - name: settings
-    description: Site settings management
+  - name: drivers
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -66,6 +62,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Order"
+  /orders/{id}:
+    patch:
+      operationId: updateOrder
+      tags: [orders]
+      summary: Update order (assign driver, change status)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /phones:
     get:
       operationId: getPhones
@@ -122,7 +148,68 @@ paths:
               schema:
                 $ref: "#/components/schemas/Phone"
         "404":
-          description: Phone not found
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /drivers:
+    get:
+      operationId: getDrivers
+      tags: [drivers]
+      summary: Get all drivers
+      responses:
+        "200":
+          description: List of drivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Driver"
+    post:
+      operationId: addDriver
+      tags: [drivers]
+      summary: Add a driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddDriverRequest"
+      responses:
+        "201":
+          description: Driver added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Driver"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /drivers/{id}:
+    delete:
+      operationId: deleteDriver
+      tags: [drivers]
+      summary: Delete a driver
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Driver deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Driver"
+        "404":
+          description: Not found
           content:
             application/json:
               schema:
@@ -163,8 +250,7 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
     CreateOrderRequest:
       type: object
       properties:
@@ -178,11 +264,16 @@ components:
           type: string
         notes:
           type: string
-      required:
-        - customerName
-        - customerPhone
-        - address
-        - orderDetails
+      required: [customerName, customerPhone, address, orderDetails]
+    UpdateOrderRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        assignedDriverId:
+          type: integer
+        assignedDriverName:
+          type: string
     Order:
       type: object
       properties:
@@ -200,17 +291,14 @@ components:
           type: string
         status:
           type: string
+        assignedDriverId:
+          type: integer
+        assignedDriverName:
+          type: string
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - customerName
-        - customerPhone
-        - address
-        - orderDetails
-        - status
-        - createdAt
+      required: [id, customerName, customerPhone, address, orderDetails, status, createdAt]
     AddPhoneRequest:
       type: object
       properties:
@@ -218,8 +306,7 @@ components:
           type: string
         label:
           type: string
-      required:
-        - phoneNumber
+      required: [phoneNumber]
     Phone:
       type: object
       properties:
@@ -232,10 +319,28 @@ components:
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - phoneNumber
-        - createdAt
+      required: [id, phoneNumber, createdAt]
+    AddDriverRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+      required: [name]
+    Driver:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, createdAt]
     SiteSettings:
       type: object
       properties:
@@ -263,6 +368,10 @@ components:
           type: string
         footerText:
           type: string
+        adminPin:
+          type: string
+        logoImage:
+          type: string
       required:
         - siteName
         - siteTagline
@@ -276,10 +385,11 @@ components:
         - primaryColor
         - whatsappTemplate
         - footerText
+        - adminPin
+        - logoImage
     ErrorResponse:
       type: object
       properties:
         error:
           type: string
-      required:
-        - error
+      required: [error]

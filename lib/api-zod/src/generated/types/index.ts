@@ -6,10 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./addDriverRequest";
 export * from "./addPhoneRequest";
 export * from "./createOrderRequest";
+export * from "./driver";
 export * from "./errorResponse";
 export * from "./healthStatus";
 export * from "./order";
 export * from "./phone";
 export * from "./siteSettings";
+export * from "./updateOrderRequest";

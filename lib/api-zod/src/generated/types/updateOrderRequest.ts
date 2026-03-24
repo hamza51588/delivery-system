@@ -6,15 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface Order {
-  id: number;
-  customerName: string;
-  customerPhone: string;
-  address: string;
-  orderDetails: string;
-  notes?: string;
-  status: string;
+export interface UpdateOrderRequest {
+  status?: string;
   assignedDriverId?: number;
   assignedDriverName?: string;
-  createdAt: Date;
 }

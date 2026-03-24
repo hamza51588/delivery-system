@@ -13,6 +13,8 @@ export interface SiteSettings {
   primaryColor: string;
   whatsappTemplate: string;
   footerText: string;
+  adminPin: string;
+  logoImage: string;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -24,10 +26,12 @@ const DEFAULT_SETTINGS: SiteSettings = {
   availabilityText: "متاحون الآن للخدمة",
   formTitle: "سجل طلبك الآن",
   formSubtitle: "أدخل تفاصيل الطلب وسنتواصل معك فوراً",
-  successMessage: "تم استلام طلبك بنجاح، وجاري تحويلك إلى الواتساب...",
+  successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
   primaryColor: "#FF6B35",
   whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
   footerText: "جميع الحقوق محفوظة.",
+  adminPin: "1234",
+  logoImage: "",
 };
 
 async function fetchSettings(): Promise<SiteSettings> {

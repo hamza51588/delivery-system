@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
 import { db, settingsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -13,10 +12,12 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   availabilityText: "متاحون الآن للخدمة",
   formTitle: "سجل طلبك الآن",
   formSubtitle: "أدخل تفاصيل الطلب وسنتواصل معك فوراً",
-  successMessage: "تم استلام طلبك بنجاح، وجاري تحويلك إلى الواتساب...",
+  successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
   primaryColor: "#FF6B35",
   whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
   footerText: "جميع الحقوق محفوظة.",
+  adminPin: "1234",
+  logoImage: "",
 };
 
 async function getAllSettings(): Promise<Record<string, string>> {
@@ -35,7 +36,6 @@ router.get("/settings", async (_req, res) => {
 
 router.put("/settings", async (req, res) => {
   const body = req.body as Record<string, string>;
-
   for (const [key, value] of Object.entries(body)) {
     if (typeof value !== "string") continue;
     await db
@@ -43,7 +43,6 @@ router.put("/settings", async (req, res) => {
       .values({ key, value })
       .onConflictDoUpdate({ target: settingsTable.key, set: { value } });
   }
-
   const settings = await getAllSettings();
   res.json(settings);
 });

@@ -8,7 +8,6 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -37,9 +36,37 @@ export const GetOrdersResponseItem = zod.object({
   orderDetails: zod.string(),
   notes: zod.string().optional(),
   status: zod.string(),
+  assignedDriverId: zod.number().optional(),
+  assignedDriverName: zod.string().optional(),
   createdAt: zod.date(),
 });
 export const GetOrdersResponse = zod.array(GetOrdersResponseItem);
+
+/**
+ * @summary Update order (assign driver, change status)
+ */
+export const UpdateOrderParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateOrderBody = zod.object({
+  status: zod.string().optional(),
+  assignedDriverId: zod.number().optional(),
+  assignedDriverName: zod.string().optional(),
+});
+
+export const UpdateOrderResponse = zod.object({
+  id: zod.number(),
+  customerName: zod.string(),
+  customerPhone: zod.string(),
+  address: zod.string(),
+  orderDetails: zod.string(),
+  notes: zod.string().optional(),
+  status: zod.string(),
+  assignedDriverId: zod.number().optional(),
+  assignedDriverName: zod.string().optional(),
+  createdAt: zod.date(),
+});
 
 /**
  * @summary Get all WhatsApp phone numbers
@@ -75,6 +102,39 @@ export const DeletePhoneResponse = zod.object({
 });
 
 /**
+ * @summary Get all drivers
+ */
+export const GetDriversResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string().optional(),
+  createdAt: zod.date(),
+});
+export const GetDriversResponse = zod.array(GetDriversResponseItem);
+
+/**
+ * @summary Add a driver
+ */
+export const AddDriverBody = zod.object({
+  name: zod.string(),
+  phone: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a driver
+ */
+export const DeleteDriverParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteDriverResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string().optional(),
+  createdAt: zod.date(),
+});
+
+/**
  * @summary Get site settings
  */
 export const GetSettingsResponse = zod.object({
@@ -90,6 +150,8 @@ export const GetSettingsResponse = zod.object({
   primaryColor: zod.string(),
   whatsappTemplate: zod.string(),
   footerText: zod.string(),
+  adminPin: zod.string(),
+  logoImage: zod.string(),
 });
 
 /**
@@ -108,6 +170,8 @@ export const UpdateSettingsBody = zod.object({
   primaryColor: zod.string(),
   whatsappTemplate: zod.string(),
   footerText: zod.string(),
+  adminPin: zod.string(),
+  logoImage: zod.string(),
 });
 
 export const UpdateSettingsResponse = zod.object({
@@ -123,4 +187,6 @@ export const UpdateSettingsResponse = zod.object({
   primaryColor: zod.string(),
   whatsappTemplate: zod.string(),
   footerText: zod.string(),
+  adminPin: zod.string(),
+  logoImage: zod.string(),
 });

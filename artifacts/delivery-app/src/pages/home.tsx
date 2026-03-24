@@ -2,7 +2,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Send, MapPin, Phone, User, Package as PackageIcon, FileText, CheckCircle2 } from "lucide-react";
+import { Send, MapPin, Phone, User, Package as PackageIcon, FileText, CheckCircle2, LocateFixed, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useCreateOrder } from "@/hooks/use-orders";
@@ -26,12 +26,31 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+async function reverseGeocode(lat: number, lng: number): Promise<string> {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ar`,
+    { headers: { "Accept-Language": "ar" } }
+  );
+  if (!res.ok) throw new Error("فشل");
+  const data = await res.json();
+  const a = data.address || {};
+  const parts = [
+    a.road || a.pedestrian || a.footway,
+    a.neighbourhood || a.suburb || a.quarter,
+    a.city || a.town || a.village || a.county,
+    a.state,
+    a.country,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join("، ") : data.display_name || "";
+}
+
 export default function Home() {
   const { toast } = useToast();
   const createOrder = useCreateOrder();
   const { data: settings } = useSettings();
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderNum, setOrderNum] = useState<number | null>(null);
+  const [locating, setLocating] = useState(false);
 
   const heroTitle = settings?.heroTitle || "توصيل سريع،";
   const heroTitleHighlight = settings?.heroTitleHighlight || "مضمون وموثوق";
@@ -45,6 +64,36 @@ export default function Home() {
     resolver: zodResolver(formSchema),
     defaultValues: { customerName: "", customerPhone: "", address: "", orderDetails: "", notes: "" },
   });
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "متصفحك لا يدعم GPS", variant: "destructive" });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const address = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+          form.setValue("address", address, { shouldValidate: true });
+          toast({ title: "✅ تم تحديد موقعك بنجاح" });
+        } catch {
+          toast({ title: "تعذر تحويل الموقع إلى عنوان", description: "حاول الكتابة يدوياً", variant: "destructive" });
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        const msg =
+          err.code === 1 ? "يرجى السماح للموقع بالوصول إلى موقعك من إعدادات المتصفح"
+          : err.code === 2 ? "تعذر تحديد الموقع، تأكد من تفعيل GPS"
+          : "انتهت مهلة تحديد الموقع";
+        toast({ title: "تعذر تحديد الموقع", description: msg, variant: "destructive" });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -144,13 +193,42 @@ export default function Home() {
                           </FormItem>
                         )} />
                       </div>
+
+                      {/* Address with GPS button */}
                       <FormField control={form.control} name="address" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold"><MapPin className="w-4 h-4 text-primary" /> العنوان بالتفصيل</FormLabel>
-                          <FormControl><Input placeholder="المدينة، الحي، الشارع، المعلم البارز" className="h-12 rounded-xl border-gray-200 focus:border-primary bg-gray-50/50" {...field} /></FormControl>
+                          <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
+                            <MapPin className="w-4 h-4 text-primary" /> العنوان بالتفصيل
+                          </FormLabel>
+                          <div className="flex gap-2" dir="rtl">
+                            <FormControl>
+                              <Input
+                                placeholder="المدينة، الحي، الشارع، المعلم البارز"
+                                className="h-12 rounded-xl border-gray-200 focus:border-primary bg-gray-50/50 flex-1"
+                                {...field}
+                              />
+                            </FormControl>
+                            <button
+                              type="button"
+                              onClick={handleLocate}
+                              disabled={locating}
+                              title="تحديد موقعي تلقائياً"
+                              className="h-12 w-12 shrink-0 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 flex items-center justify-center transition-all disabled:opacity-60"
+                            >
+                              {locating
+                                ? <Loader2 className="w-5 h-5 animate-spin" />
+                                : <LocateFixed className="w-5 h-5" />
+                              }
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                            <LocateFixed className="w-3 h-3" />
+                            اضغط على الزر لتحديد موقعك تلقائياً عبر GPS
+                          </p>
                           <FormMessage />
                         </FormItem>
                       )} />
+
                       <FormField control={form.control} name="orderDetails" render={({ field }) => (
                         <FormItem>
                           <FormLabel className="flex items-center gap-2 text-gray-700 font-bold"><PackageIcon className="w-4 h-4 text-primary" /> ماذا تريد أن نوصل لك؟</FormLabel>

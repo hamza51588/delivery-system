@@ -1,0 +1,296 @@
+import { useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Send, MapPin, Phone, User, Package as PackageIcon, FileText, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+import { useCreateOrder } from "@/hooks/use-orders";
+import { usePhones } from "@/hooks/use-phones";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+
+const formSchema = z.object({
+  customerName: z.string().min(2, "الاسم مطلوب ויجب أن يكون حرفين على الأقل"),
+  customerPhone: z.string().min(6, "رقم الهاتف مطلوب ويفضل أن يكون صحيحاً"),
+  address: z.string().min(5, "الرجاء كتابة العنوان بالتفصيل"),
+  orderDetails: z.string().min(3, "الرجاء كتابة تفاصيل الطلب"),
+  notes: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+export default function Home() {
+  const { toast } = useToast();
+  const createOrder = useCreateOrder();
+  const { data: phones } = usePhones();
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      customerName: "",
+      customerPhone: "",
+      address: "",
+      orderDetails: "",
+      notes: "",
+    },
+  });
+
+  const onSubmit = async (data: FormValues) => {
+    try {
+      // 1. Save to database
+      await createOrder.mutateAsync({ data });
+
+      // 2. Format WhatsApp Message
+      const text = `🛵 *طلب توصيل جديد*
+👤 *الاسم:* ${data.customerName}
+📞 *الهاتف:* ${data.customerPhone}
+📍 *العنوان:* ${data.address}
+📦 *الطلب:* ${data.orderDetails}
+📝 *ملاحظات:* ${data.notes || "لا يوجد"}`;
+      
+      const encoded = encodeURIComponent(text);
+
+      // 3. Determine target phones (fallback to default if DB is empty)
+      const targetPhones = phones && phones.length > 0 
+        ? phones.map(p => p.phoneNumber) 
+        : ["967775864948"];
+
+      // 4. Open WhatsApp links
+      targetPhones.forEach((phone, index) => {
+        // Strip non-numeric from phone
+        const cleanPhone = phone.replace(/\D/g, "");
+        const url = `https://wa.me/${cleanPhone}?text=${encoded}`;
+        // Add a slight delay to allow multiple windows to open
+        setTimeout(() => {
+          window.open(url, "_blank");
+        }, index * 200);
+      });
+
+      // 5. Show success UI
+      setIsSuccess(true);
+      toast({
+        title: "تم إرسال الطلب بنجاح!",
+        description: "سيتم التواصل معك قريباً لتأكيد الطلب.",
+        variant: "default",
+      });
+      
+      // Reset form after a delay if they want to order again
+      setTimeout(() => {
+        form.reset();
+        setIsSuccess(false);
+      }, 5000);
+
+    } catch (error) {
+      toast({
+        title: "حدث خطأ",
+        description: "تعذر إرسال الطلب، الرجاء المحاولة لاحقاً.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      {/* Right Column: Information & Illustration */}
+      <div className="order-2 lg:order-1 flex flex-col items-center lg:items-start text-center lg:text-start space-y-8">
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-primary font-bold text-sm">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+            </span>
+            متاحون الآن للخدمة
+          </div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight">
+            توصيل سريع، <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">
+              مضمون وموثوق
+            </span>
+          </h2>
+          <p className="text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 leading-relaxed font-medium">
+            اطلب الآن وسنقوم بتوصيل طلبك بأسرع وقت ممكن. نحن نهتم بكل التفاصيل لضمان وصول طلبك بأمان.
+          </p>
+        </div>
+
+        <div className="relative w-full max-w-md aspect-square mx-auto lg:mx-0">
+          <div className="absolute inset-0 bg-gradient-to-tr from-orange-100 to-orange-50 rounded-full blur-3xl opacity-50"></div>
+          <img 
+            src={`${import.meta.env.BASE_URL}images/hero-scooter.png`} 
+            alt="Delivery Scooter" 
+            className="relative z-10 w-full h-full object-contain drop-shadow-2xl animate-in zoom-in duration-700"
+          />
+        </div>
+      </div>
+
+      {/* Left Column: Form */}
+      <div className="order-1 lg:order-2 w-full max-w-lg mx-auto">
+        <Card className="border-0 shadow-2xl shadow-primary/10 rounded-3xl overflow-hidden bg-white/90 backdrop-blur-xl">
+          <CardContent className="p-8 sm:p-10 relative">
+            <AnimatePresence mode="wait">
+              {isSuccess ? (
+                <motion.div 
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="flex flex-col items-center justify-center text-center py-12 space-y-6"
+                >
+                  <div className="w-24 h-24 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
+                    <CheckCircle2 className="w-12 h-12" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900">شكراً لك!</h3>
+                  <p className="text-lg text-gray-600 font-medium">تم استلام طلبك بنجاح، وجاري تحويلك إلى الواتساب...</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4 rounded-xl border-2 hover:bg-gray-50 font-bold"
+                    onClick={() => {
+                      setIsSuccess(false);
+                      form.reset();
+                    }}
+                  >
+                    طلب جديد
+                  </Button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="form"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="mb-8 text-center">
+                    <h3 className="text-2xl font-bold text-gray-900">سجل طلبك الآن</h3>
+                    <p className="text-gray-500 mt-2 font-medium">أدخل تفاصيل الطلب وسنتواصل معك فوراً</p>
+                  </div>
+
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="customerName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
+                                <User className="w-4 h-4 text-primary" />
+                                الاسم
+                              </FormLabel>
+                              <FormControl>
+                                <Input placeholder="محمد أحمد" className="h-12 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="customerPhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
+                                <Phone className="w-4 h-4 text-primary" />
+                                رقم الهاتف
+                              </FormLabel>
+                              <FormControl>
+                                <Input placeholder="05X XXX XXXX" dir="ltr" className="h-12 rounded-xl text-right border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
+                              <MapPin className="w-4 h-4 text-primary" />
+                              العنوان بالتفصيل
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="المدينة، الحي، الشارع، المعلم البارز" className="h-12 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="orderDetails"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
+                              <PackageIcon className="w-4 h-4 text-primary" />
+                              ماذا تريد أن نوصل لك؟
+                            </FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="اكتب تفاصيل الطلب هنا..." 
+                                className="min-h-[100px] resize-none rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 text-gray-700 font-bold">
+                              <FileText className="w-4 h-4 text-primary" />
+                              ملاحظات إضافية (اختياري)
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="أي تعليمات إضافية للسائق..." className="h-12 rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button 
+                        type="submit" 
+                        disabled={createOrder.isPending}
+                        className="w-full h-14 text-lg font-bold rounded-xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover:-translate-y-0.5 mt-4 group"
+                      >
+                        {createOrder.isPending ? (
+                          <span className="flex items-center gap-2">جاري الإرسال <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span></span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            إرسال الطلب للواتساب
+                            <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                          </span>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

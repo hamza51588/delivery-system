@@ -1,0 +1,15 @@
+packages:
+  "framer-motion": "For page transitions and smooth UI animations"
+  "react-hook-form": "For robust form state management"
+  "@hookform/resolvers": "For Zod form validation"
+  "zod": "For form schema validation"
+  "date-fns": "For formatting dates in the admin panel"
+
+images:
+  - path: "artifacts/delivery-app/public/images/hero-scooter.png"
+    description: "Modern 3d illustration of a delivery scooter zooming fast with packages on a clean white background, vibrant orange and white colors, premium, warm lighting, isolated on transparent or white"
+    aspect_ratio: "1:1"
+
+notes:
+  - Using generated hooks from @workspace/api-client-react
+  - Defaulting direction to RTL for Arabic language support

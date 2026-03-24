@@ -12,3 +12,4 @@ export * from "./errorResponse";
 export * from "./healthStatus";
 export * from "./order";
 export * from "./phone";
+export * from "./siteSettings";

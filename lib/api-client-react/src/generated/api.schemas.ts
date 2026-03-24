@@ -40,6 +40,21 @@ export interface Phone {
   createdAt: string;
 }
 
+export interface SiteSettings {
+  siteName: string;
+  siteTagline: string;
+  heroTitle: string;
+  heroTitleHighlight: string;
+  heroDescription: string;
+  availabilityText: string;
+  formTitle: string;
+  formSubtitle: string;
+  successMessage: string;
+  primaryColor: string;
+  whatsappTemplate: string;
+  footerText: string;
+}
+
 export interface ErrorResponse {
   error: string;
 }

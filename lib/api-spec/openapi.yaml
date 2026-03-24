@@ -13,6 +13,8 @@ tags:
     description: Order operations
   - name: phones
     description: WhatsApp phone number management
+  - name: settings
+    description: Site settings management
 paths:
   /healthz:
     get:
@@ -125,6 +127,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get site settings
+      responses:
+        "200":
+          description: Site settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettings"
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update site settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteSettings"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettings"
 components:
   schemas:
     HealthStatus:
@@ -205,6 +236,46 @@ components:
         - id
         - phoneNumber
         - createdAt
+    SiteSettings:
+      type: object
+      properties:
+        siteName:
+          type: string
+        siteTagline:
+          type: string
+        heroTitle:
+          type: string
+        heroTitleHighlight:
+          type: string
+        heroDescription:
+          type: string
+        availabilityText:
+          type: string
+        formTitle:
+          type: string
+        formSubtitle:
+          type: string
+        successMessage:
+          type: string
+        primaryColor:
+          type: string
+        whatsappTemplate:
+          type: string
+        footerText:
+          type: string
+      required:
+        - siteName
+        - siteTagline
+        - heroTitle
+        - heroTitleHighlight
+        - heroDescription
+        - availabilityText
+        - formTitle
+        - formSubtitle
+        - successMessage
+        - primaryColor
+        - whatsappTemplate
+        - footerText
     ErrorResponse:
       type: object
       properties:

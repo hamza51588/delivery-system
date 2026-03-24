@@ -73,3 +73,54 @@ export const DeletePhoneResponse = zod.object({
   label: zod.string().optional(),
   createdAt: zod.date(),
 });
+
+/**
+ * @summary Get site settings
+ */
+export const GetSettingsResponse = zod.object({
+  siteName: zod.string(),
+  siteTagline: zod.string(),
+  heroTitle: zod.string(),
+  heroTitleHighlight: zod.string(),
+  heroDescription: zod.string(),
+  availabilityText: zod.string(),
+  formTitle: zod.string(),
+  formSubtitle: zod.string(),
+  successMessage: zod.string(),
+  primaryColor: zod.string(),
+  whatsappTemplate: zod.string(),
+  footerText: zod.string(),
+});
+
+/**
+ * @summary Update site settings
+ */
+export const UpdateSettingsBody = zod.object({
+  siteName: zod.string(),
+  siteTagline: zod.string(),
+  heroTitle: zod.string(),
+  heroTitleHighlight: zod.string(),
+  heroDescription: zod.string(),
+  availabilityText: zod.string(),
+  formTitle: zod.string(),
+  formSubtitle: zod.string(),
+  successMessage: zod.string(),
+  primaryColor: zod.string(),
+  whatsappTemplate: zod.string(),
+  footerText: zod.string(),
+});
+
+export const UpdateSettingsResponse = zod.object({
+  siteName: zod.string(),
+  siteTagline: zod.string(),
+  heroTitle: zod.string(),
+  heroTitleHighlight: zod.string(),
+  heroDescription: zod.string(),
+  availabilityText: zod.string(),
+  formTitle: zod.string(),
+  formSubtitle: zod.string(),
+  successMessage: zod.string(),
+  primaryColor: zod.string(),
+  whatsappTemplate: zod.string(),
+  footerText: zod.string(),
+});

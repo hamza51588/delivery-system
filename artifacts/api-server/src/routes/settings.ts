@@ -18,6 +18,9 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   footerText: "جميع الحقوق محفوظة.",
   adminPin: "1234",
   logoImage: "",
+  bankName: "بنك العملاقي",
+  bankAccountName: "",
+  bankAccountNumber: "",
 };
 
 async function getAllSettings(): Promise<Record<string, string>> {

@@ -15,6 +15,9 @@ export interface SiteSettings {
   footerText: string;
   adminPin: string;
   logoImage: string;
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNumber: string;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -32,6 +35,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
   footerText: "جميع الحقوق محفوظة.",
   adminPin: "1234",
   logoImage: "",
+  bankName: "بنك العملاقي",
+  bankAccountName: "",
+  bankAccountNumber: "",
 };
 
 async function fetchSettings(): Promise<SiteSettings> {
@@ -63,8 +69,6 @@ export function useUpdateSettings() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: saveSettings,
-    onSuccess: (data) => {
-      qc.setQueryData(["settings"], data);
-    },
+    onSuccess: (data) => { qc.setQueryData(["settings"], data); },
   });
 }

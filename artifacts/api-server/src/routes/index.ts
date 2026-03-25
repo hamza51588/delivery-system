@@ -4,6 +4,7 @@ import ordersRouter from "./orders";
 import phonesRouter from "./phones";
 import settingsRouter from "./settings";
 import driversRouter from "./drivers";
+import deliveryAreasRouter from "./delivery-areas";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(ordersRouter);
 router.use(phonesRouter);
 router.use(settingsRouter);
 router.use(driversRouter);
+router.use(deliveryAreasRouter);
 
 export default router;

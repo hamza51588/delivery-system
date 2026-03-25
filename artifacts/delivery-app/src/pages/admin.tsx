@@ -17,6 +17,7 @@ import { usePhones, useAddPhone, useDeletePhone } from "@/hooks/use-phones";
 import { useSettings, useUpdateSettings, SiteSettings } from "@/hooks/use-settings";
 import { useDrivers, useAddDriver, useDeleteDriver } from "@/hooks/use-drivers";
 import { useDeliveryAreas, useAddDeliveryArea, useUpdateDeliveryArea, useDeleteDeliveryArea } from "@/hooks/use-delivery-areas";
+import { useCashiers, useAddCashier, useDeleteCashier } from "@/hooks/use-cashiers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,6 +42,7 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
 const phoneSchema = z.object({ phoneNumber: z.string().min(6), label: z.string().optional() });
 const driverSchema = z.object({ name: z.string().min(2, "الاسم مطلوب"), phone: z.string().optional() });
 const areaSchema = z.object({ name: z.string().min(1, "اسم المنطقة مطلوب"), price: z.coerce.number().min(0) });
+const cashierSchema = z.object({ name: z.string().min(2, "الاسم مطلوب"), phone: z.string().optional(), notes: z.string().optional() });
 const settingsSchema = z.object({
   siteName: z.string().min(1), siteTagline: z.string().min(1),
   heroTitle: z.string().min(1), heroTitleHighlight: z.string().min(1),
@@ -309,10 +311,14 @@ export default function Admin() {
   const addArea = useAddDeliveryArea();
   const updateArea = useUpdateDeliveryArea();
   const deleteArea = useDeleteDeliveryArea();
+  const { data: cashiers, isLoading: isCashiersLoading } = useCashiers();
+  const addCashier = useAddCashier();
+  const deleteCashier = useDeleteCashier();
 
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({ resolver: zodResolver(phoneSchema), defaultValues: { phoneNumber: "", label: "" } });
   const driverForm = useForm<z.infer<typeof driverSchema>>({ resolver: zodResolver(driverSchema), defaultValues: { name: "", phone: "" } });
   const areaForm = useForm<z.infer<typeof areaSchema>>({ resolver: zodResolver(areaSchema), defaultValues: { name: "", price: 0 } });
+  const cashierForm = useForm<z.infer<typeof cashierSchema>>({ resolver: zodResolver(cashierSchema), defaultValues: { name: "", phone: "", notes: "" } });
   const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
@@ -346,6 +352,16 @@ export default function Admin() {
   };
   const onAddArea = async (data: z.infer<typeof areaSchema>) => {
     try { await addArea.mutateAsync(data); toast({ title: "تم إضافة المنطقة" }); areaForm.reset(); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
+  };
+
+  const onAddCashier = async (data: z.infer<typeof cashierSchema>) => {
+    try { await addCashier.mutateAsync(data); toast({ title: "تم إضافة الصراف" }); cashierForm.reset(); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
+  };
+
+  const onDeleteCashier = async (id: number) => {
+    try { await deleteCashier.mutateAsync(id); toast({ title: "تم حذف الصراف" }); }
     catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
 

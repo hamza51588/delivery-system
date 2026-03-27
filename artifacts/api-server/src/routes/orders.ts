@@ -22,7 +22,6 @@ async function sendTelegramAlert(order: any) {
   `;
 
   try {
-    // استخدمنا fetch المدمج في Node.js 18+ لإرسال الإشعار
     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -47,10 +46,8 @@ router.post("/orders", async (req, res) => {
     return;
   }
   
-  // حفظ الطلب في قاعدة البيانات (Neon)
   const [order] = await db.insert(ordersTable).values(validated.data).returning();
   
-  // 🔥 إرسال التنبيه فوراً للتليجرام بعد نجاح الحفظ
   if (order) {
     await sendTelegramAlert(order);
   }
@@ -66,22 +63,43 @@ router.get("/orders", async (_req, res) => {
 
 /* Public order tracking by id + phone */
 router.get("/orders/track", async (req, res) => {
+  // تحويل id إلى رقم وتنظيف رقم الهاتف من المسافات
   const id = Number(req.query.id);
   const phone = String(req.query.phone || "").trim();
-  if (isNaN(id) || !phone) { res.status(400).json({ error: "بيانات غير صحيحة" }); return; }
-  const [order] = await db.select({
-    id: ordersTable.id,
-    customerName: ordersTable.customerName,
-    status: ordersTable.status,
-    assignedDriverName: ordersTable.assignedDriverName,
-    assignedDriverPhone: ordersTable.assignedDriverPhone,
-    deliveryArea: ordersTable.deliveryArea,
-    paymentMethod: ordersTable.paymentMethod,
-    paymentVerified: ordersTable.paymentVerified,
-    createdAt: ordersTable.createdAt,
-  }).from(ordersTable).where(and(eq(ordersTable.id, id), eq(ordersTable.customerPhone, phone)));
-  if (!order) { res.status(404).json({ error: "لم يتم العثور على الطلب" }); return; }
-  res.json(order);
+
+  if (isNaN(id) || !phone) {
+    return res.status(400).json({ error: "رقم الطلب أو الهاتف غير صحيح" });
+  }
+
+  try {
+    const [order] = await db.select({
+      id: ordersTable.id,
+      customerName: ordersTable.customerName,
+      status: ordersTable.status,
+      assignedDriverName: ordersTable.assignedDriverName,
+      assignedDriverPhone: ordersTable.assignedDriverPhone, // تأكد أن هذا الحقل موجود في الـ Schema
+      deliveryArea: ordersTable.deliveryArea,
+      paymentMethod: ordersTable.paymentMethod,
+      paymentVerified: ordersTable.paymentVerified,
+      createdAt: ordersTable.createdAt,
+    })
+    .from(ordersTable)
+    .where(
+      and(
+        eq(ordersTable.id, id),
+        eq(ordersTable.customerPhone, phone)
+      )
+    );
+
+    if (!order) {
+      return res.status(404).json({ error: "لم يتم العثور على الطلب. تأكد من رقم الطلب ورقم الهاتف المستخدم عند الطلب." });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error("Tracking Error:", error);
+    res.status(500).json({ error: "خطأ داخلي في السيرفر" });
+  }
 });
 
 /* Update order (admin) */
@@ -90,19 +108,15 @@ router.patch("/orders/:id", async (req, res) => {
   if (isNaN(id)) { res.status(400).json({ error: "معرف غير صحيح" }); return; }
 
   const {
-    status, assignedDriverId, assignedDriverName,
+    status, assignedDriverId, assignedDriverName, assignedDriverPhone,
     paymentVerified,
-  } = req.body as {
-    status?: string;
-    assignedDriverId?: number | null;
-    assignedDriverName?: string | null;
-    paymentVerified?: boolean;
-  };
+  } = req.body as any;
 
   const updateData: Record<string, unknown> = {};
   if (status !== undefined) updateData.status = status;
   if (assignedDriverId !== undefined) updateData.assignedDriverId = assignedDriverId;
   if (assignedDriverName !== undefined) updateData.assignedDriverName = assignedDriverName;
+  if (assignedDriverPhone !== undefined) updateData.assignedDriverPhone = assignedDriverPhone;
   if (paymentVerified !== undefined) updateData.paymentVerified = paymentVerified;
 
   const [updated] = await db.update(ordersTable).set(updateData).where(eq(ordersTable.id, id)).returning();

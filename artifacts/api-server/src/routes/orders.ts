@@ -4,7 +4,6 @@ import { desc, eq, and } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-// إعدادات التليجرام الخاصة بحمزة
 const BOT_TOKEN = "7846459199:AAFuDhDJ9__6W5dZVLvew5qTND_CxhycQSc";
 const CHAT_ID = "1841557437";
 
@@ -19,7 +18,6 @@ async function sendTelegramAlert(order: any) {
   } catch (e) { console.error("Telegram Failed", e); }
 }
 
-/* استقبال الطلبات */
 router.post("/orders", async (req, res) => {
   try {
     const validated = insertOrderSchema.safeParse(req.body);
@@ -30,7 +28,6 @@ router.post("/orders", async (req, res) => {
   } catch (e) { res.status(500).json({ error: "خطأ في الحفظ" }); }
 });
 
-/* التتبع الذكي - جلب رقم السائق من جدوله مباشرة */
 router.get("/orders/track", async (req, res) => {
   const id = Number(req.query.id);
   const phone = String(req.query.phone || "").trim();
@@ -41,32 +38,47 @@ router.get("/orders/track", async (req, res) => {
 
     if (!order) return res.status(404).json({ error: "الطلب غير موجود" });
 
-    let driverPhone = "غير متوفر";
+    let driverPhone = ""; // تركناها فارغة لكي تختفي السماعة إذا لم يتم التعيين
     if (order.assignedDriverId) {
       const driverResults = await db.select().from(driversTable).where(eq(driversTable.id, order.assignedDriverId));
       if (driverResults[0]) {
-        driverPhone = driverResults[0].phone || "غير متوفر";
+        driverPhone = driverResults[0].phone || "";
       }
     }
 
-    res.json({ ...order, assignedDriverPhone: driverPhone });
+    res.json({
+      ...order,
+      assignedDriverName: order.assignedDriverName || "جاري التعيين...", // وداعاً لكلمة null
+      assignedDriverPhone: driverPhone
+    });
   } catch (error) {
     console.error("Tracking Error:", error);
     res.status(500).json({ error: "حدث خطأ داخلي" });
   }
 });
 
-/* عرض كل الطلبات للمدير */
 router.get("/orders", async (_req, res) => {
   const orders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt));
   res.json(orders);
 });
 
-/* تحديث حالة الطلب */
+/* تم إصلاح هذا القسم لكي لا تعلق لوحة التحكم */
 router.patch("/orders/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const [updated] = await db.update(ordersTable).set(req.body).where(eq(ordersTable.id, id)).returning();
-  res.json(updated);
+  try {
+    const { status, assignedDriverId, assignedDriverName, paymentVerified } = req.body;
+    const updateData: any = {};
+    
+    if (status !== undefined) updateData.status = status;
+    if (assignedDriverId !== undefined) updateData.assignedDriverId = assignedDriverId;
+    if (assignedDriverName !== undefined) updateData.assignedDriverName = assignedDriverName;
+    if (paymentVerified !== undefined) updateData.paymentVerified = paymentVerified;
+
+    const [updated] = await db.update(ordersTable).set(updateData).where(eq(ordersTable.id, id)).returning();
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "خطأ في التحديث" });
+  }
 });
 
 export default router;

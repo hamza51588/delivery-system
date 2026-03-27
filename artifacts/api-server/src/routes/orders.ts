@@ -38,7 +38,7 @@ router.get("/orders/track", async (req, res) => {
 
     if (!order) return res.status(404).json({ error: "الطلب غير موجود" });
 
-    let driverPhone = ""; // تركناها فارغة لكي تختفي السماعة إذا لم يتم التعيين
+    let driverPhone = "";
     if (order.assignedDriverId) {
       const driverResults = await db.select().from(driversTable).where(eq(driversTable.id, order.assignedDriverId));
       if (driverResults[0]) {
@@ -48,11 +48,10 @@ router.get("/orders/track", async (req, res) => {
 
     res.json({
       ...order,
-      assignedDriverName: order.assignedDriverName || "جاري التعيين...", // وداعاً لكلمة null
+      assignedDriverName: order.assignedDriverName || "جاري التعيين...",
       assignedDriverPhone: driverPhone
     });
   } catch (error) {
-    console.error("Tracking Error:", error);
     res.status(500).json({ error: "حدث خطأ داخلي" });
   }
 });
@@ -62,7 +61,7 @@ router.get("/orders", async (_req, res) => {
   res.json(orders);
 });
 
-/* تم إصلاح هذا القسم لكي لا تعلق لوحة التحكم */
+/* مسار التحديث المُدرَّع (مضاد للتعليق) */
 router.patch("/orders/:id", async (req, res) => {
   const id = Number(req.params.id);
   try {
@@ -70,13 +69,22 @@ router.patch("/orders/:id", async (req, res) => {
     const updateData: any = {};
     
     if (status !== undefined) updateData.status = status;
-    if (assignedDriverId !== undefined) updateData.assignedDriverId = assignedDriverId;
-    if (assignedDriverName !== undefined) updateData.assignedDriverName = assignedDriverName;
+    
+    // تنظيف شامل: إذا ضغطت "إلغاء" أو تم إرسال null بالخطأ، السيرفر يمسح السائق تماماً
+    if (assignedDriverId !== undefined) {
+       let parsedId = Number(assignedDriverId);
+       updateData.assignedDriverId = (isNaN(parsedId) || assignedDriverId === "null" || assignedDriverId === null) ? null : parsedId;
+    }
+    if (assignedDriverName !== undefined) {
+       updateData.assignedDriverName = (assignedDriverName === "null" || assignedDriverName === "") ? null : assignedDriverName;
+    }
+    
     if (paymentVerified !== undefined) updateData.paymentVerified = paymentVerified;
 
     const [updated] = await db.update(ordersTable).set(updateData).where(eq(ordersTable.id, id)).returning();
     res.json(updated);
   } catch (error) {
+    console.error("Patch Error:", error);
     res.status(500).json({ error: "خطأ في التحديث" });
   }
 });

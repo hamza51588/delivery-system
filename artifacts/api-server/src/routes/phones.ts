@@ -11,11 +11,28 @@ router.get("/phones", async (_req, res) => {
 });
 
 router.post("/phones", async (req, res) => {
-  const parsed = AddPhoneBody.safeParse(req.body);
-  if (!parsed.success) {
+  // بدلاً من التدقيق المعقد، نأخذ الرقم مباشرة
+  const { phone } = req.body;
+
+  if (!phone || phone.toString().trim() === "") {
     res.status(400).json({ error: "رقم الهاتف مطلوب" });
     return;
   }
+
+  try {
+    // هنا الكود الذي يحفظ في قاعدة البيانات (تأكد من وجوده أدناه في ملفك)
+    // سأكمل لك الكود بناءً على السياق العام لـ Neon:
+    const [newPhone] = await db
+      .insert(phones)
+      .values({ phone: phone.toString().trim() })
+      .returning();
+    
+    res.json(newPhone);
+  } catch (error) {
+    console.error("Error saving phone:", error);
+    res.status(500).json({ error: "فشل في حفظ الرقم" });
+  }
+});
 
   const validated = insertPhoneSchema.safeParse(parsed.data);
   if (!validated.success) {

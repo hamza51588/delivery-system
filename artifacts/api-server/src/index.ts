@@ -1,7 +1,9 @@
 import cors from "cors";
 import app from "./app";
 import { logger } from "./lib/logger";
-import cors from 'cors';
+
+// تفعيل حارس الحدود (CORS) ليسمح بطلبات لابتوبك
+app.use(cors());
 
 const rawPort = process.env["PORT"];
 

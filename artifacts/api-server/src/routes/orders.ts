@@ -74,6 +74,7 @@ router.get("/orders/track", async (req, res) => {
     customerName: ordersTable.customerName,
     status: ordersTable.status,
     assignedDriverName: ordersTable.assignedDriverName,
+    assignedDriverPhone: ordersTable.assignedDriverPhone,
     deliveryArea: ordersTable.deliveryArea,
     paymentMethod: ordersTable.paymentMethod,
     paymentVerified: ordersTable.paymentVerified,

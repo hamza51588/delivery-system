@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, ordersTable, insertOrderSchema, driversTable } from "@workspace/db";
-import { desc, eq, gte, and } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -9,13 +9,7 @@ const BOT_TOKEN = "7846459199:AAFuDhDJ9__6W5dZVLvew5qTND_CxhycQSc";
 const CHAT_ID = "1841557437";
 
 async function sendTelegramAlert(order: any) {
-  const message = `🔔 *طلب جديد وصل يا مدير!*
-━━━━━━━━━━━━
-👤 العميل: ${order.customerName}
-📞 الهاتف: ${order.customerPhone}
-💰 الإجمالي: ${order.totalPrice} ريال
-📍 العنوان: ${order.deliveryArea || "غير محدد"}`;
-
+  const message = `🔔 *طلب جديد وصل يا مدير!*\n━━━━━━━━━━━━\n👤 العميل: ${order.customerName}\n📞 الهاتف: ${order.customerPhone}\n💰 الإجمالي: ${order.totalPrice} ريال\n📍 العنوان: ${order.deliveryArea || "غير محدد"}`;
   try {
     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
@@ -48,7 +42,6 @@ router.get("/orders/track", async (req, res) => {
     if (!order) return res.status(404).json({ error: "الطلب غير موجود" });
 
     let driverPhone = "غير متوفر";
-    // إذا كان هناك سائق معين للطلب، نذهب لجدول السائقين لنجلب رقمه
     if (order.assignedDriverId) {
       const driverResults = await db.select().from(driversTable).where(eq(driversTable.id, order.assignedDriverId));
       if (driverResults[0]) {

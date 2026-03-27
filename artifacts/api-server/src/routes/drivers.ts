@@ -1,30 +1,38 @@
-import { Router, type IRouter } from "express";
-import { db, driversTable, insertDriverSchema } from "@workspace/db";
+import { Router } from "express";
+import { db, driversTable, ordersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
-const router: IRouter = Router();
+const router = Router();
 
+// جلب جميع السائقين
 router.get("/drivers", async (_req, res) => {
-  const drivers = await db.select().from(driversTable).orderBy(driversTable.createdAt);
+  const drivers = await db.select().from(driversTable);
   res.json(drivers);
 });
 
+// إضافة سائق جديد
 router.post("/drivers", async (req, res) => {
-  const validated = insertDriverSchema.safeParse(req.body);
-  if (!validated.success) {
-    res.status(400).json({ error: "اسم السائق مطلوب" });
-    return;
-  }
-  const [driver] = await db.insert(driversTable).values(validated.data).returning();
-  res.status(201).json(driver);
+  const [driver] = await db.insert(driversTable).values(req.body).returning();
+  res.json(driver);
 });
 
+// حذف سائق (مع تنظيف الارتباطات)
 router.delete("/drivers/:id", async (req, res) => {
   const id = Number(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "معرف غير صحيح" }); return; }
-  const [deleted] = await db.delete(driversTable).where(eq(driversTable.id, id)).returning();
-  if (!deleted) { res.status(404).json({ error: "السائق غير موجود" }); return; }
-  res.json(deleted);
+  try {
+    // خطوة الأمان: تصفير اسم السائق في الطلبات المرتبطة به لكي لا ينهار النظام
+    await db.update(ordersTable)
+      .set({ assignedDriverId: null })
+      .where(eq(ordersTable.assignedDriverId, id));
+
+    // الآن نحذف السائق بقلب قوي
+    await db.delete(driversTable).where(eq(driversTable.id, id));
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Delete Driver Error:", error);
+    res.status(500).json({ error: "فشل حذف السائق" });
+  }
 });
 
 export default router;

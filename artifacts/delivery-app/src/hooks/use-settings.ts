@@ -41,13 +41,13 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 async function fetchSettings(): Promise<SiteSettings> {
-  const res = await fetch("/api/settings");
+  const res = await fetch( "https://delivery-system-s41p.onrender.com/api/settings");
   if (!res.ok) return DEFAULT_SETTINGS;
   return res.json();
 }
 
 async function saveSettings(data: SiteSettings): Promise<SiteSettings> {
-  const res = await fetch("/api/settings", {
+  const res = await fetch( "https://delivery-system-s41p.onrender.com/api/settings", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

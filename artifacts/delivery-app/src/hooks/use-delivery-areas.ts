@@ -11,7 +11,7 @@ export interface DeliveryArea {
 const KEY = ["delivery-areas"];
 
 async function fetchAreas(): Promise<DeliveryArea[]> {
-  const res = await fetch("/api/delivery-areas");
+  const res = await fetch( "https://delivery-system-s41p.onrender.com/api/delivery-areas");
   if (!res.ok) return [];
   return res.json();
 }
@@ -24,7 +24,7 @@ export function useAddDeliveryArea() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: { name: string; price: number }) => {
-      const res = await fetch("/api/delivery-areas", {
+      const res = await fetch( "https://delivery-system-s41p.onrender.com/api/delivery-areas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, isActive: true }),

@@ -8,13 +8,13 @@ export interface Driver {
 }
 
 async function fetchDrivers(): Promise<Driver[]> {
-  const res = await fetch("/api/drivers");
+  const res = await fetch( "https://delivery-system-s41p.onrender.com/api/drivers");
   if (!res.ok) return [];
   return res.json();
 }
 
 async function addDriver(data: { name: string; phone?: string }): Promise<Driver> {
-  const res = await fetch("/api/drivers", {
+  const res = await fetch( "https://delivery-system-s41p.onrender.com/api/drivers", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

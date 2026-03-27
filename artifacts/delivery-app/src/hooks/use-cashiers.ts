@@ -11,7 +11,7 @@ export interface Cashier {
 const KEY = ["cashiers"];
 
 async function fetchCashiers(): Promise<Cashier[]> {
-  const res = await fetch("/api/cashiers");
+  const res = await fetch( "https://delivery-system-s41p.onrender.com/api/cashiers");
   if (!res.ok) return [];
   return res.json();
 }
@@ -24,7 +24,7 @@ export function useAddCashier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: { name: string; phone?: string; notes?: string }) => {
-      const res = await fetch("/api/cashiers", {
+      const res = await fetch( "https://delivery-system-s41p.onrender.com/api/cashiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

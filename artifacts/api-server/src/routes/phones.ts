@@ -1,63 +1,56 @@
 import { Router, type IRouter } from "express";
-import { db, phonesTable, insertPhoneSchema } from "@workspace/db";
-import { AddPhoneBody, DeletePhoneParams } from "@workspace/api-zod";
+import { db, phonesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
+// 1. جلب كل الأرقام
 router.get("/phones", async (_req, res) => {
-  const phones = await db.select().from(phonesTable).orderBy(phonesTable.createdAt);
-  res.json(phones);
+  try {
+    const phones = await db.select().from(phonesTable);
+    res.json(phones);
+  } catch (error) {
+    res.status(500).json({ error: "فشل في جلب الأرقام" });
+  }
 });
 
+// 2. إضافة رقم جديد (الكود المرن والمصلح)
 router.post("/phones", async (req, res) => {
-  // بدلاً من التدقيق المعقد، نأخذ الرقم مباشرة
-  const { phone } = req.body;
-
-  if (!phone || phone.toString().trim() === "") {
-    res.status(400).json({ error: "رقم الهاتف مطلوب" });
-    return;
-  }
-
   try {
-    // هنا الكود الذي يحفظ في قاعدة البيانات (تأكد من وجوده أدناه في ملفك)
-    // سأكمل لك الكود بناءً على السياق العام لـ Neon:
+    // نأخذ الرقم بأي اسم يرسله الموقع (phone أو number)
+    const phoneInput = req.body.phone || req.body.number;
+
+    if (!phoneInput) {
+      return res.status(400).json({ error: "رقم الهاتف مطلوب" });
+    }
+
     const [newPhone] = await db
-      .insert(phones)
-      .values({ phone: phone.toString().trim() })
+      .insert(phonesTable)
+      .values({ 
+        phone: phoneInput.toString().trim() 
+      })
       .returning();
     
-    res.json(newPhone);
+    res.status(201).json(newPhone);
   } catch (error) {
     console.error("Error saving phone:", error);
     res.status(500).json({ error: "فشل في حفظ الرقم" });
   }
 });
 
-  const validated = insertPhoneSchema.safeParse(parsed.data);
-  if (!validated.success) {
-    res.status(400).json({ error: "بيانات غير صحيحة" });
-    return;
-  }
-
-  const [phone] = await db.insert(phonesTable).values(validated.data).returning();
-  res.status(201).json(phone);
-});
-
+// 3. حذف رقم
 router.delete("/phones/:id", async (req, res) => {
-  const parsed = DeletePhoneParams.safeParse({ id: Number(req.params.id) });
-  if (!parsed.success) {
-    res.status(400).json({ error: "معرف غير صحيح" });
-    return;
+  try {
+    const id = Number(req.params.id);
+    const [deleted] = await db.delete(phonesTable).where(eq(phonesTable.id, id)).returning();
+    
+    if (!deleted) {
+      return res.status(404).json({ error: "الرقم غير موجود" });
+    }
+    res.json(deleted);
+  } catch (error) {
+    res.status(500).json({ error: "فشل في حذف الرقم" });
   }
-
-  const [deleted] = await db.delete(phonesTable).where(eq(phonesTable.id, parsed.data.id)).returning();
-  if (!deleted) {
-    res.status(404).json({ error: "الرقم غير موجود" });
-    return;
-  }
-
-  res.json(deleted);
 });
 
 export default router;

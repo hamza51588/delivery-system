@@ -3,7 +3,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 
 // تفعيل حارس الحدود (CORS) ليسمح بطلبات لابتوبك
-app.use(cors());
+app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "Authorization"] }));
 
 const rawPort = process.env["PORT"];
 

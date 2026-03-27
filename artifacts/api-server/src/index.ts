@@ -1,5 +1,7 @@
+import cors from "cors";
 import app from "./app";
 import { logger } from "./lib/logger";
+import cors from 'cors';
 
 const rawPort = process.env["PORT"];
 

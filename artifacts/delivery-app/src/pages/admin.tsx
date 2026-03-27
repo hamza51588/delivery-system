@@ -395,7 +395,7 @@ export default function Admin() {
       .replace("{notes}", order.notes || "لا يوجد");
     if (order.locationLink) text += `\n🗺️ الموقع: ${order.locationLink}`;
     const encoded = encodeURIComponent(text);
-    const targetPhones = phones && phones.length > 0 ? phones.map(p => p.phoneNumber) : ["967775864948"];
+    const targetPhones = Array.isArray(phones) && phones.length > 0 ? (phones || []).map(p => p.phoneNumber) : ["967775864948"];
     targetPhones.forEach((ph, i) => {
       setTimeout(() => window.open(`https://wa.me/${ph.replace(/\D/g, "")}?text=${encoded}`, "_blank"), i * 200);
     });
@@ -626,7 +626,7 @@ export default function Admin() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {isPhonesLoading ? [1,2].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />) :
               phones?.length === 0 ? <p className="text-gray-500 col-span-2 text-center py-8">لا يوجد أرقام مضافة</p> :
-              phones?.map(phone => (
+              (Array.isArray(phones) ? phones : []).map(phone => (
                 <div key={phone.id} className="flex items-center justify-between p-5 bg-white border border-border/50 rounded-2xl shadow-sm">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center"><PhoneIcon className="w-6 h-6" /></div>

@@ -4,6 +4,41 @@ import { desc, eq, gte, and } from "drizzle-orm";
 
 const router: IRouter = Router();
 
+// --- إعدادات التليجرام الخاصة بحمزة ---
+const BOT_TOKEN = "7846459199:AAFuDhDJ9__6W5dZVLvew5qTND_CxhycQSc";
+const CHAT_ID = "1841557437";
+
+async function sendTelegramAlert(order: any) {
+  const message = `
+🔔 *طلب جديد وصل يا مدير!*
+━━━━━━━━━━━━
+👤 *العميل:* ${order.customerName}
+📞 *الهاتف:* ${order.customerPhone}
+📍 *العنوان:* ${order.deliveryArea || "غير محدد"}
+💰 *الإجمالي:* ${order.totalPrice || 0} ريال
+💳 *الدفع:* ${order.paymentMethod === 'cash' ? 'كاش' : 'تحويل'}
+━━━━━━━━━━━━
+🚚 *يرجى مراجعة لوحة التحكم للتنفيذ.*
+  `;
+
+  try {
+    // استخدمنا fetch المدمج في Node.js 18+ لإرسال الإشعار
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: "Markdown"
+      })
+    });
+    console.log("Telegram notification sent successfully!");
+  } catch (e) {
+    console.error("Telegram Notification Failed", e);
+  }
+}
+// ------------------------------------
+
 /* Create order */
 router.post("/orders", async (req, res) => {
   const validated = insertOrderSchema.safeParse(req.body);
@@ -11,7 +46,15 @@ router.post("/orders", async (req, res) => {
     res.status(400).json({ error: "بيانات غير صحيحة", details: validated.error.issues });
     return;
   }
+  
+  // حفظ الطلب في قاعدة البيانات (Neon)
   const [order] = await db.insert(ordersTable).values(validated.data).returning();
+  
+  // 🔥 إرسال التنبيه فوراً للتليجرام بعد نجاح الحفظ
+  if (order) {
+    await sendTelegramAlert(order);
+  }
+
   res.status(201).json(order);
 });
 

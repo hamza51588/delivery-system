@@ -14,9 +14,9 @@ export function Layout({ children }: LayoutProps) {
   const [isTrack] = useRoute("/track");
   const { data: settings } = useSettings();
 
-  const siteName = settings?.siteName || "وصلني";
+  const siteName = settings?.siteName || "طلبك علينا";
   const siteTagline = settings?.siteTagline || "أسرع خدمة توصيل";
-  const footerText = settings?.footerText || "جميع الحقوق محفوظة.";
+  const footerText = settings?.footerText || "جميع الحقوق محفوظة - تطوير م. حمزة  .";
   const logoImage = settings?.logoImage || "";
 
   return (
@@ -28,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
               {logoImage ? (
                 <img src={logoImage} alt={siteName} className="w-full h-full object-cover" />
               ) : (
-                <Package className="w-6 h-6" />
+                <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
               )}
             </div>
             <div>

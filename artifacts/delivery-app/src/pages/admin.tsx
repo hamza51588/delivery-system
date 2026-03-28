@@ -155,7 +155,7 @@ function OrderCard({
 
           {/* Order details */}
           <div className="bg-orange-50/60 p-3 rounded-xl">
-            <p className="text-xs font-bold text-orange-600 mb-1 flex items-center gap-1"><Package className="w-3.5 h-3.5" /> تفاصيل الطلب</p>
+            <p className="text-xs font-bold text-orange-600 mb-1 flex items-center gap-1"><img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" /> تفاصيل الطلب</p>
             <p className="text-sm font-semibold text-gray-800">{order.orderDetails}</p>
           </div>
 
@@ -241,7 +241,7 @@ function OrderCard({
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 {showDrivers && (
-                  <div className="absolute z-10 top-full mt-1 right-0 left-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+                  <div className="absolute z-[9999] top-full max-h-[200px] overflow-y-auto mt-1 right-0 left-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
                     {isDriversLoading ? <p className="p-3 text-sm text-gray-500">جاري التحميل...</p>
                       : drivers?.length === 0 ? <p className="p-3 text-sm text-gray-500">لا يوجد سائقون</p>
                       : drivers?.map(d => (
@@ -322,7 +322,7 @@ export default function Admin() {
   const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      siteName: "وصلني", siteTagline: "أسرع خدمة توصيل",
+      siteName: "طلبك علينا", siteTagline: "أسرع خدمة توصيل",
       heroTitle: "توصيل سريع،", heroTitleHighlight: "مضمون وموثوق",
       heroDescription: "اطلب الآن وسنقوم بتوصيل طلبك بأسرع وقت ممكن.",
       availabilityText: "متاحون الآن للخدمة",
@@ -330,7 +330,7 @@ export default function Admin() {
       successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
       primaryColor: "#FF6B35",
       whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
-      footerText: "جميع الحقوق محفوظة.", adminPin: "1234", logoImage: "",
+      footerText: "جميع الحقوق محفوظة - تطوير م. حمزة  .", adminPin: "1234", logoImage: "",
       bankName: "بنك العملاقي", bankAccountName: "", bankAccountNumber: "",
     },
   });
@@ -435,7 +435,7 @@ export default function Admin() {
             { icon: <Calendar className="w-5 h-5" />, label: "اليوم", value: stats.today, color: "text-orange-600 bg-orange-50" },
             { icon: <TrendingUp className="w-5 h-5" />, label: "هذا الشهر", value: stats.thisMonth, color: "text-blue-600 bg-blue-50" },
             { icon: <BarChart3 className="w-5 h-5" />, label: "هذه السنة", value: stats.thisYear, color: "text-purple-600 bg-purple-50" },
-            { icon: <Package className="w-5 h-5" />, label: "الإجمالي", value: stats.total, color: "text-green-600 bg-green-50" },
+            { icon: <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />, label: "الإجمالي", value: stats.total, color: "text-green-600 bg-green-50" },
           ].map(stat => (
             <Card key={stat.label} className="border-0 shadow-md rounded-2xl">
               <CardContent className="p-4 flex items-center gap-3">
@@ -473,7 +473,7 @@ export default function Admin() {
       <Tabs defaultValue="orders" dir="rtl">
         <TabsList className="w-full grid grid-cols-5 h-14 bg-gray-100 p-1 rounded-xl mb-8">
           {[
-            { value: "orders",  icon: <Package className="w-4 h-4" />, label: "الطلبات" },
+            { value: "orders",  icon: <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />, label: "الطلبات" },
             { value: "drivers", icon: <Truck className="w-4 h-4" />, label: "السائقون" },
             { value: "areas",   icon: <MapPin className="w-4 h-4" />, label: "المناطق" },
             { value: "phones",  icon: <PhoneIcon className="w-4 h-4" />, label: "واتساب" },
@@ -492,7 +492,7 @@ export default function Admin() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{[1,2,3,4].map(i => <Skeleton key={i} className="h-72 rounded-2xl" />)}</div>
           ) : orders?.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl">
-              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
               <h3 className="text-xl font-bold text-gray-500">لا يوجد طلبات بعد</h3>
             </div>
           ) : (
@@ -652,11 +652,11 @@ export default function Admin() {
 
                 {/* Logo + Branding */}
                 <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Package className="w-5 h-5 text-primary" /> الهوية والشعار</CardTitle></CardHeader>
+                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" /> الهوية والشعار</CardTitle></CardHeader>
                   <CardContent className="pt-6 space-y-5">
                     <div className="flex items-center gap-5">
                       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-orange-400 text-white flex items-center justify-center shadow-lg overflow-hidden shrink-0">
-                        {settingsForm.watch("logoImage") ? <img src={settingsForm.watch("logoImage")} alt="logo" className="w-full h-full object-cover" /> : <Package className="w-10 h-10" />}
+                        {settingsForm.watch("logoImage") ? <img src={settingsForm.watch("logoImage")} alt="logo" className="w-full h-full object-cover" /> : <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />}
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-bold text-gray-700 transition-colors">

@@ -21,7 +21,7 @@ export interface SiteSettings {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  siteName: "وصلني",
+  siteName: "طلبك علينا",
   siteTagline: "أسرع خدمة توصيل",
   heroTitle: "توصيل سريع،",
   heroTitleHighlight: "مضمون وموثوق",
@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
   primaryColor: "#FF6B35",
   whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
-  footerText: "جميع الحقوق محفوظة.",
+  footerText: "جميع الحقوق محفوظة - تطوير م. حمزة  .",
   adminPin: "1234",
   logoImage: "",
   bankName: "بنك العملاقي",

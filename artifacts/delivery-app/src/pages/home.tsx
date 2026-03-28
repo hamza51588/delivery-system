@@ -293,7 +293,7 @@ export default function Home() {
                       {/* Order Details */}
                       <FormField control={form.control} name="orderDetails" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="flex items-center gap-2 font-bold"><PackageIcon className="w-4 h-4 text-primary" /> ماذا تريد أن نوصل لك؟</FormLabel>
+                          <FormLabel className="flex items-center gap-2 font-bold"><img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" /> ماذا تريد أن نوصل لك؟</FormLabel>
                           <FormControl><Textarea placeholder="اكتب تفاصيل الطلب هنا..." className="min-h-[90px] resize-none rounded-xl bg-gray-50/50" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>

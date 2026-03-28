@@ -76,7 +76,7 @@ export default function Track() {
     <div className="max-w-lg mx-auto w-full py-4 space-y-8">
       <div className="text-center space-y-2">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-orange-400 text-white flex items-center justify-center shadow-lg mx-auto">
-          <Package className="w-8 h-8" />
+          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
         </div>
         <h1 className="text-2xl font-extrabold text-gray-900">تتبع طلبك</h1>
         <p className="text-gray-500 font-medium">أدخل رقم الطلب ورقم هاتفك لمتابعة حالته</p>
@@ -135,7 +135,7 @@ export default function Track() {
               </div>
               <div className="text-left">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold ${STATUS_COLORS[order.status] || "bg-gray-100 text-gray-700"}`}>
-                  {isCancelled ? <XCircle className="w-4 h-4" /> : <Package className="w-4 h-4" />}
+                  {isCancelled ? <XCircle className="w-4 h-4" /> : <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />}
                   {STATUS_STEPS.find(s => s.key === order.status)?.label || order.status}
                 </span>
               </div>

@@ -16,7 +16,7 @@ export function Layout({ children }: LayoutProps) {
 
   const siteName = settings?.siteName || "طلبك علينا";
   const siteTagline = settings?.siteTagline || "أسرع خدمة توصيل";
-  const footerText = settings?.footerText || "جميع الحقوق محفوظة - تطوير م. حمزة  .";
+  const footerText = settings?.footerText || "حمزة محمد المروني للتواصل 775864948  .";
   const logoImage = settings?.logoImage || "";
 
   return (

@@ -330,7 +330,7 @@ export default function Admin() {
       successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
       primaryColor: "#FF6B35",
       whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
-      footerText: "جميع الحقوق محفوظة - تطوير م. حمزة  .", adminPin: "1234", logoImage: "",
+      footerText: "حمزة محمد المروني للتواصل 775864948  .", adminPin: "1234", logoImage: "",
       bankName: "بنك العملاقي", bankAccountName: "", bankAccountNumber: "",
     },
   });

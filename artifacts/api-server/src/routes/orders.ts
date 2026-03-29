@@ -67,25 +67,37 @@ router.patch("/orders/:id", async (req, res) => {
 });
 
 // 🚀 المسار المعدل: يعالج مشكلة الفراغ ويرسل للتلجرام بقوة
+
 router.post("/orders/:id/receipt", async (req: any, res: any) => {
     try {
         const id = Number(req.params.id);
-        const imageUrl = req.body.image || req.body.receiptUrl || "";
+        // البحث عن أي رابط صورة داخل body مهما كان اسم المتغير
+        let imageUrl = req.body.image || req.body.receiptUrl || req.body.url || "";
+        
+        // إذا لم يجد الرابط، يبحث في قيم الكائن بالكامل
+        if (!imageUrl) {
+            imageUrl = Object.values(req.body).find(v => typeof v === "string" && v.startsWith("http")) || "";
+        }
 
-        // إرسال الصورة للتلجرام فوراً (المهم)
         if (imageUrl) {
+            // 1. إرسال للصيد فوراً للتليجرام
             const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
             fetch(telegramUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ chat_id: CHAT_ID, photo: imageUrl, caption: `📸 إيصال جديد للطلب رقم: #${id}` })
-            }).catch(err => console.error("TG Image Fail:", err));
+                body: JSON.stringify({ chat_id: CHAT_ID, photo: imageUrl, caption: `📸 إيصال الطلب: #${id}` })
+            }).catch(e => console.error("TG Fail", e));
 
-            // الحفظ في القاعدة (فقط إذا وجد رابط لتجنب خطأ السيت)
+            // 2. تحديث القاعدة
             await db.update(ordersTable).set({ receiptUrl: imageUrl }).where(eq(ordersTable.id, id));
         }
 
         res.status(200).json({ success: true });
+    } catch (e) {
+        res.status(200).json({ success: true });
+    }
+});
+
     } catch (e) {
         res.status(200).json({ success: true });
     }

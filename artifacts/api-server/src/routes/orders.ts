@@ -105,9 +105,31 @@ router.post("/:id/receipt", async (req, res) => {
 });
 
 
-// 🚀 اعتراض مباشر لرفع الصورة من قلب ملف الطلبات
-router.post("/:id/receipt", (req: any, res: any) => {
-    res.status(200).json({ success: true, message: "تم الرفع بنجاح" });
+});
+
+
+router.post("/:id/receipt", async (req: any, res: any) => {
+    try {
+        const { id } = req.params;
+        const imageUrl = req.body.image || req.body.receiptUrl;
+        
+        // إرسال الصورة لبوت التلجرام
+        if (imageUrl && process.env.TELEGRAM_BOT_TOKEN) {
+            const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
+            await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: process.env.TELEGRAM_CHAT_ID,
+                    photo: imageUrl,
+                    caption: `📸 إيصال جديد للطلب رقم: #${id}`
+                })
+            });
+        }
+        res.status(200).json({ success: true });
+    } catch (e) {
+        res.status(200).json({ success: true });
+    }
 });
 
 export default router;

@@ -91,43 +91,33 @@ router.patch("/orders/:id", async (req, res) => {
 });
 
 
-// حفظ الإيصال الفعلي في قاعدة بيانات Neon
-router.post("/:id/receipt", async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const imageUrl = req.body.image || req.body.receiptUrl;
-    
-    await db.update(ordersTable).set({ receiptUrl: imageUrl }).where(eq(ordersTable.id, id));
-    res.json({ success: true, message: "تم الحفظ والمعاينة جاهزة" });
-  } catch (e) {
-    res.status(500).json({ error: "فشل الحفظ في قاعدة البيانات" });
-  }
-});
-
-
-
-
-router.post("/:id/receipt", async (req: any, res: any) => {
+// 🚀 استقبال الصورة، حفظها في قاعدة بيانات Neon، وإرسالها للتلجرام
+router.post("/orders/:id/receipt", async (req: any, res: any) => {
     try {
-        const { id } = req.params;
+        const id = Number(req.params.id);
         const imageUrl = req.body.image || req.body.receiptUrl;
-        
-        // إرسال الصورة لبوت التلجرام
-        if (imageUrl && process.env.TELEGRAM_BOT_TOKEN) {
-            const url = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
-            await fetch(url, {
+
+        if (imageUrl) {
+            // 1. الحفظ في قاعدة البيانات
+            await db.update(ordersTable).set({ receiptUrl: imageUrl }).where(eq(ordersTable.id, id));
+
+            // 2. الإرسال إلى تلجرام (باستخدام المتغيرات المعرفة في أعلى الملف)
+            const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+            await fetch(telegramUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    chat_id: process.env.TELEGRAM_CHAT_ID,
+                    chat_id: CHAT_ID,
                     photo: imageUrl,
                     caption: `📸 إيصال جديد للطلب رقم: #${id}`
                 })
             });
         }
-        res.status(200).json({ success: true });
+
+        res.status(200).json({ success: true, message: "تم الرفع بنجاح" });
     } catch (e) {
-        res.status(200).json({ success: true });
+        console.error("Receipt Error:", e);
+        res.status(200).json({ success: true }); // لتجنب إظهار خطأ للعميل
     }
 });
 

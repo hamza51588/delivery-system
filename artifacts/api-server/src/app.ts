@@ -1,8 +1,6 @@
 import express, { type Express } from "express";
 
-// الخدعة المؤكدة: استقبال الصورة والرد بالنجاح
-app.post("/api/orders/:id/receipt", (req: any, res: any) => {
-    res.status(200).json({ success: true, message: "تم الرفع بنجاح" });
+
 });
 
 import cors from "cors";

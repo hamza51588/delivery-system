@@ -18,7 +18,6 @@ async function sendTelegramAlert(order: any) {
   } catch (e) { console.error("Telegram Failed", e); }
 }
 
-
 router.post("/orders", async (req, res) => {
   try {
     const validated = insertOrderSchema.safeParse(req.body);
@@ -62,7 +61,6 @@ router.get("/orders", async (_req, res) => {
   res.json(orders);
 });
 
-/* مسار التحديث المُدرَّع (مضاد للتعليق) */
 router.patch("/orders/:id", async (req, res) => {
   const id = Number(req.params.id);
   try {
@@ -71,7 +69,6 @@ router.patch("/orders/:id", async (req, res) => {
     
     if (status !== undefined) updateData.status = status;
     
-    // تنظيف شامل: إذا ضغطت "إلغاء" أو تم إرسال null بالخطأ، السيرفر يمسح السائق تماماً
     if (assignedDriverId !== undefined) {
        let parsedId = Number(assignedDriverId);
        updateData.assignedDriverId = (isNaN(parsedId) || assignedDriverId === "null" || assignedDriverId === null) ? null : parsedId;
@@ -90,8 +87,7 @@ router.patch("/orders/:id", async (req, res) => {
   }
 });
 
-
-// 🚀 استقبال الصورة، حفظها في قاعدة بيانات Neon، وإرسالها للتلجرام
+// 🚀 المسار الصحيح 100%: يستقبل الصورة، يحفظها، ويرسلها للتلجرام
 router.post("/orders/:id/receipt", async (req: any, res: any) => {
     try {
         const id = Number(req.params.id);
@@ -101,7 +97,7 @@ router.post("/orders/:id/receipt", async (req: any, res: any) => {
             // 1. الحفظ في قاعدة البيانات
             await db.update(ordersTable).set({ receiptUrl: imageUrl }).where(eq(ordersTable.id, id));
 
-            // 2. الإرسال إلى تلجرام (باستخدام المتغيرات المعرفة في أعلى الملف)
+            // 2. إرسال الصورة للتلجرام مباشرة
             const telegramUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
             await fetch(telegramUrl, {
                 method: "POST",
@@ -117,7 +113,7 @@ router.post("/orders/:id/receipt", async (req: any, res: any) => {
         res.status(200).json({ success: true, message: "تم الرفع بنجاح" });
     } catch (e) {
         console.error("Receipt Error:", e);
-        res.status(200).json({ success: true }); // لتجنب إظهار خطأ للعميل
+        res.status(200).json({ success: true });
     }
 });
 

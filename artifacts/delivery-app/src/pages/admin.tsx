@@ -1,3 +1,4 @@
+import { Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -155,7 +156,7 @@ function OrderCard({
 
           {/* Order details */}
           <div className="bg-orange-50/60 p-3 rounded-xl">
-            <p className="text-xs font-bold text-orange-600 mb-1 flex items-center gap-1"><img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" /> تفاصيل الطلب</p>
+            <p className="text-xs font-bold text-orange-600 mb-1 flex items-center gap-1"><Package className="w-6 h-6 text-orange-600 inline-block ml-1" /> تفاصيل الطلب</p>
             <p className="text-sm font-semibold text-gray-800">{order.orderDetails}</p>
           </div>
 
@@ -435,7 +436,7 @@ export default function Admin() {
             { icon: <Calendar className="w-5 h-5" />, label: "اليوم", value: stats.today, color: "text-orange-600 bg-orange-50" },
             { icon: <TrendingUp className="w-5 h-5" />, label: "هذا الشهر", value: stats.thisMonth, color: "text-blue-600 bg-blue-50" },
             { icon: <BarChart3 className="w-5 h-5" />, label: "هذه السنة", value: stats.thisYear, color: "text-purple-600 bg-purple-50" },
-            { icon: <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />, label: "الإجمالي", value: stats.total, color: "text-green-600 bg-green-50" },
+            { icon: <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />, label: "الإجمالي", value: stats.total, color: "text-green-600 bg-green-50" },
           ].map(stat => (
             <Card key={stat.label} className="border-0 shadow-md rounded-2xl">
               <CardContent className="p-4 flex items-center gap-3">
@@ -473,7 +474,7 @@ export default function Admin() {
       <Tabs defaultValue="orders" dir="rtl">
         <TabsList className="w-full grid grid-cols-5 h-14 bg-gray-100 p-1 rounded-xl mb-8">
           {[
-            { value: "orders",  icon: <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />, label: "الطلبات" },
+            { value: "orders",  icon: <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />, label: "الطلبات" },
             { value: "drivers", icon: <Truck className="w-4 h-4" />, label: "السائقون" },
             { value: "areas",   icon: <MapPin className="w-4 h-4" />, label: "المناطق" },
             { value: "phones",  icon: <PhoneIcon className="w-4 h-4" />, label: "واتساب" },
@@ -492,7 +493,7 @@ export default function Admin() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{[1,2,3,4].map(i => <Skeleton key={i} className="h-72 rounded-2xl" />)}</div>
           ) : orders?.length === 0 ? (
             <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl">
-              <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+              <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />
               <h3 className="text-xl font-bold text-gray-500">لا يوجد طلبات بعد</h3>
             </div>
           ) : (
@@ -652,11 +653,11 @@ export default function Admin() {
 
                 {/* Logo + Branding */}
                 <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
-                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" /> الهوية والشعار</CardTitle></CardHeader>
+                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Package className="w-6 h-6 text-orange-600 inline-block ml-1" /> الهوية والشعار</CardTitle></CardHeader>
                   <CardContent className="pt-6 space-y-5">
                     <div className="flex items-center gap-5">
                       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-orange-400 text-white flex items-center justify-center shadow-lg overflow-hidden shrink-0">
-                        {settingsForm.watch("logoImage") ? <img src={settingsForm.watch("logoImage")} alt="logo" className="w-full h-full object-cover" /> : <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />}
+                        {settingsForm.watch("logoImage") ? <img src={settingsForm.watch("logoImage")} alt="logo" className="w-full h-full object-cover" /> : <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />}
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-bold text-gray-700 transition-colors">

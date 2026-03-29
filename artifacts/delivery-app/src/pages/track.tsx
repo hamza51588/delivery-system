@@ -1,3 +1,4 @@
+import { Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Search, Package, CheckCircle2, Truck, Clock, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { useTrackOrder, TrackResult } from "@/hooks/use-orders";
@@ -76,7 +77,7 @@ export default function Track() {
     <div className="max-w-lg mx-auto w-full py-4 space-y-8">
       <div className="text-center space-y-2">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-orange-400 text-white flex items-center justify-center shadow-lg mx-auto">
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <Package className="w-10 h-10 text-orange-600" />
         </div>
         <h1 className="text-2xl font-extrabold text-gray-900">تتبع طلبك</h1>
         <p className="text-gray-500 font-medium">أدخل رقم الطلب ورقم هاتفك لمتابعة حالته</p>
@@ -135,7 +136,7 @@ export default function Track() {
               </div>
               <div className="text-left">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold ${STATUS_COLORS[order.status] || "bg-gray-100 text-gray-700"}`}>
-                  {isCancelled ? <XCircle className="w-4 h-4" /> : <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />}
+                  {isCancelled ? <XCircle className="w-4 h-4" /> : <Package className="w-10 h-10 text-orange-600" />}
                   {STATUS_STEPS.find(s => s.key === order.status)?.label || order.status}
                 </span>
               </div>
@@ -147,9 +148,16 @@ export default function Track() {
               <p className="font-bold text-gray-900 text-lg">{order.customerName}</p>
               {order.deliveryArea && <p className="text-sm text-gray-600 font-medium">المنطقة: {order.deliveryArea}</p>}
               {order.assignedDriverName && (
-                <p className="text-sm text-primary font-bold mt-1 flex items-center gap-1.5">
-                  <Truck className="w-4 h-4" /> السائق: {order.assignedDriverName}
-                </p>
+                <div className="flex flex-col gap-1 mt-1">
+                  <p className="text-sm text-primary font-bold flex items-center gap-1.5">
+                    <Truck className="w-4 h-4" /> السائق: {order.assignedDriverName}
+                  </p>
+                  {order.assignedDriverPhone && (
+                    <a href={`tel:${order.assignedDriverPhone}`} className="text-sm text-orange-600 font-bold flex items-center gap-1.5 hover:underline" dir="ltr">
+                      {order.assignedDriverPhone} 📞
+                    </a>
+                  )}
+                </div>
               )}
             </div>
 

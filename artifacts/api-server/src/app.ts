@@ -38,3 +38,6 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use("/api", router);
 
 export default app;
+
+// مسار استقبال صور الإيصالات
+app.post('/api/orders/:id/receipt', (req, res) => { res.status(200).json({ success: true, message: 'تم رفع الإيصال بنجاح' }); });

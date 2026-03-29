@@ -105,7 +105,6 @@ router.post("/:id/receipt", async (req, res) => {
 });
 
 
-});
 
 
 router.post("/:id/receipt", async (req: any, res: any) => {

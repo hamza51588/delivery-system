@@ -18,7 +18,6 @@ async function sendTelegramAlert(order: any) {
   } catch (e) { console.error("Telegram Failed", e); }
 }
 
-});
 
 router.post("/orders", async (req, res) => {
   try {

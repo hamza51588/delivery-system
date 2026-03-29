@@ -18,9 +18,6 @@ async function sendTelegramAlert(order: any) {
   } catch (e) { console.error("Telegram Failed", e); }
 }
 
-// مسار إخفاء خطأ الإيصال عن العميل
-router.post("/:id/receipt", (req: any, res: any) => {
-    res.status(200).json({ success: true, message: "تم الرفع بنجاح" });
 });
 
 router.post("/orders", async (req, res) => {
@@ -106,6 +103,12 @@ router.post("/:id/receipt", async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: "فشل الحفظ في قاعدة البيانات" });
   }
+});
+
+
+// 🚀 اعتراض مباشر لرفع الصورة من قلب ملف الطلبات
+router.post("/:id/receipt", (req: any, res: any) => {
+    res.status(200).json({ success: true, message: "تم الرفع بنجاح" });
 });
 
 export default router;

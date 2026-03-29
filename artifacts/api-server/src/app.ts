@@ -10,13 +10,7 @@ import { logger } from "./lib/logger";
 const app: Express = express();
 
 
-// 🚀 نظام اعتراض الطوارئ: اصطياد الصورة من الجو والرد بنجاح
-app.use((req: any, res: any, next: any) => {
-    if (req.method === "POST" && req.url.includes("/receipt")) {
-        return res.status(200).json({ success: true, message: "تم بنجاح" });
-    }
-    next();
-});
+
 
 app.use(
   pinoHttp({

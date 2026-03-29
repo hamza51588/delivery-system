@@ -89,4 +89,18 @@ router.patch("/orders/:id", async (req, res) => {
   }
 });
 
+
+// حفظ الإيصال الفعلي في قاعدة بيانات Neon
+router.post("/:id/receipt", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const imageUrl = req.body.image || req.body.receiptUrl;
+    
+    await db.update(ordersTable).set({ receiptUrl: imageUrl }).where(eq(ordersTable.id, id));
+    res.json({ success: true, message: "تم الحفظ والمعاينة جاهزة" });
+  } catch (e) {
+    res.status(500).json({ error: "فشل الحفظ في قاعدة البيانات" });
+  }
+});
+
 export default router;

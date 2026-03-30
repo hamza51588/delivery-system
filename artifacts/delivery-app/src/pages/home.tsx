@@ -37,9 +37,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
     `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ar`,
     { headers: { "Accept-Language": "ar" } }
   );
-  // تم إزالة شرط الصورة الإجباري);
-      return;
-    }
+  // تم إزالة شرط الصورة الإجباري
     try {
       const payload: Record<string, unknown> = {
         customerName: data.customerName,

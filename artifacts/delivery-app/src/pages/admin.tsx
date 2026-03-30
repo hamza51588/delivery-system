@@ -126,8 +126,8 @@ function OrderCard({
 
   return (
     <>
-      {showReceipt && order.paymentReceiptImage && (
-        <ReceiptModal src={order.paymentReceiptImage} onClose={() => setShowReceipt(false)} />
+      {showReceipt && order.receiptUrl && (
+        <ReceiptModal src={order.receiptUrl} onClose={() => setShowReceipt(false)} />
       )}
       <Card className="border border-border/50 shadow-md hover:shadow-xl transition-all rounded-2xl overflow-hidden">
         <div className={`h-1.5 w-full ${order.paymentMethod === "bank_transfer" ? "bg-gradient-to-r from-blue-400 to-blue-600" : "bg-gradient-to-r from-primary to-orange-400"}`}></div>
@@ -201,12 +201,7 @@ function OrderCard({
                   <CreditCard className="w-4 h-4 text-blue-600" /> سند تحويل مصرفي
                 </p>
                 <div className="flex items-center gap-2">
-                  {order.paymentReceiptImage && (
-                    <button onClick={() => setShowReceipt(true)}
-                      className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-bold bg-white border border-blue-200 px-2 py-1 rounded-lg">
-                      <Eye className="w-3.5 h-3.5" /> رقم الحوالة
-                    </button>
-                  )}
+                  {order.receiptUrl && <div className="w-full mt-2 px-3 py-2 bg-blue-100 text-blue-900 rounded-lg font-bold border border-blue-300">رقم الحوالة: <span className="text-lg font-black tracking-widest mr-2">{order.receiptUrl}</span></div>}
                   {!order.paymentVerified ? (
                     <button onClick={() => onVerifyPayment(order.id, true)}
                       className="flex items-center gap-1 text-xs text-white bg-green-500 hover:bg-green-600 font-bold px-2 py-1 rounded-lg">
@@ -220,7 +215,7 @@ function OrderCard({
                   )}
                 </div>
               </div>
-              {!order.paymentReceiptImage && <p className="text-xs text-gray-500 mt-1">لم يقم الزبون بإدخال رقم الحوالة</p>}
+              {!order.receiptUrl && <p className="text-xs text-gray-500 mt-1">لم يقم الزبون بإدخال رقم الحوالة</p>}
             </div>
           )}
 

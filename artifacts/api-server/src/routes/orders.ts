@@ -81,7 +81,7 @@ router.post("/orders/:id/receipt", async (req: any, res: any) => {
             }).catch(() => {});
 
             // 2. قاعدة البيانات
-            await db.update(ordersTable).set({ receiptUrl: imageUrl }).where(eq(ordersTable.id, id));
+            await db.update(ordersTable).set({ paymentReceiptImage: imageUrl }).where(eq(ordersTable.id, id));
         }
         res.status(200).json({ success: true });
     } catch (e) {

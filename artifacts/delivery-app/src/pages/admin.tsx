@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
   Trash2, Phone as PhoneIcon, Plus, MapPin, User, Clock,
-  FileText, Package, Settings, Save, Palette, Lock,
+  FileText, Settings, Save, Palette, Lock,
   MessageCircle, Truck, CheckCircle2, XCircle, Image as ImageIcon,
   ChevronDown, BarChart3, TrendingUp, Calendar, ExternalLink,
   CreditCard, Eye, Edit2, ToggleLeft, ToggleRight, Banknote,
@@ -204,7 +204,7 @@ function OrderCard({
                   {order.paymentReceiptImage && (
                     <button onClick={() => setShowReceipt(true)}
                       className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-bold bg-white border border-blue-200 px-2 py-1 rounded-lg">
-                      <Eye className="w-3.5 h-3.5" /> عرض السند
+                      <Eye className="w-3.5 h-3.5" /> رقم الحوالة
                     </button>
                   )}
                   {!order.paymentVerified ? (

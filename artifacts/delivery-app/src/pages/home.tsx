@@ -37,7 +37,95 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
     `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ar`,
     { headers: { "Accept-Language": "ar" } }
   );
-  // تم إزالة شرط الصورة الإجباري
+  if (!res.ok) throw new Error("فشل");
+  const data = await res.json();
+  const a = data.address || {};
+  const parts = [
+    a.road || a.pedestrian || a.footway,
+    a.neighbourhood || a.suburb || a.quarter,
+    a.city || a.town || a.village || a.county,
+    a.state,
+    a.country,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join("، ") : data.display_name || "";
+}
+
+export default function Home() {
+  const { toast } = useToast();
+  const createOrder = useCreateOrder();
+  const uploadReceipt = useUploadReceipt();
+  const { data: settings } = useSettings();
+  const { data: areas } = useDeliveryAreas();
+  const activeAreas = areas?.filter(a => a.isActive) || [];
+
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [orderNum, setOrderNum] = useState<number | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [gpsLink, setGpsLink] = useState<string | null>(null);
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [receiptFile, setReceiptFile] = useState<string | null>(null);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
+
+  const s = settings;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      customerName: "", customerPhone: "", address: "",
+      orderDetails: "", notes: "", deliveryArea: "",
+      paymentMethod: "cash",
+    },
+  });
+
+  const paymentMethod = form.watch("paymentMethod");
+  const selectedArea = form.watch("deliveryArea");
+  const selectedAreaData = activeAreas.find(a => a.name === selectedArea);
+
+  const handleLocate = () => {
+    if (!navigator.geolocation) {
+      toast({ title: "متصفحك لا يدعم GPS", variant: "destructive" });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude: lat, longitude: lng } = pos.coords;
+          const address = await reverseGeocode(lat, lng);
+          const link = `https://www.google.com/maps?q=${lat},${lng}`;
+          form.setValue("address", address, { shouldValidate: true });
+          setGpsCoords({ lat, lng });
+          setGpsLink(link);
+          toast({ title: "✅ تم تحديد موقعك بنجاح" });
+        } catch {
+          toast({ title: "تعذر تحويل الموقع إلى عنوان", description: "حاول الكتابة يدوياً", variant: "destructive" });
+        } finally { setLocating(false); }
+      },
+      (err) => {
+        setLocating(false);
+        const msg =
+          err.code === 1 ? "يرجى السماح للموقع بالوصول إلى موقعك من إعدادات المتصفح"
+          : err.code === 2 ? "تعذر تحديد الموقع، تأكد من تفعيل GPS"
+          : "انتهت مهلة تحديد الموقع";
+        toast({ title: "تعذر تحديد الموقع", description: msg, variant: "destructive" });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setReceiptFile(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const onSubmit = async (data: FormValues) => {
+    if (false) {
+      toast({ title: "يرجى رفع صورة سند التحويل", variant: "destructive" });
+      return;
+    }
     try {
       const payload: Record<string, unknown> = {
         customerName: data.customerName,
@@ -54,8 +142,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
       };
       const order = await createOrder.mutateAsync(payload);
       if (data.paymentMethod === "bank_transfer" && receiptFile) {
-        // نرسل رقم الحوالة للسيرفر
-      await uploadReceipt.mutateAsync({ id: order.id, image: receiptFile });
+        await uploadReceipt.mutateAsync({ id: order.id, image: receiptFile });
       }
       setOrderNum(order.id);
       setIsSuccess(true);
@@ -257,20 +344,19 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
                                 {s?.bankAccountName && <p>اسم الحساب: <span className="font-bold">{s.bankAccountName}</span></p>}
                                 {s?.bankAccountNumber && <p>رقم الحساب: <span className="font-bold" dir="ltr">{s.bankAccountNumber}</span></p>}
                               </div>
-                              
-<div className="pt-1 space-y-2">
-  <p className="text-xs text-blue-600 font-bold flex items-center gap-1">
-    <ImageIcon className="w-3.5 h-3.5" /> يرجى إدخال رقم حوالة الإيداع *
-  </p>
-  <input
-    type="text"
-    placeholder="أدخل رقم الحوالة هنا..."
-    className="w-full h-12 px-4 border-2 border-blue-300 rounded-xl focus:border-blue-500 focus:outline-none transition-colors"
-    value={receiptFile || ""}
-    onChange={(e) => setReceiptFile(e.target.value)}
-  />
-</div>
-
+                              <div className="pt-1">
+                                <p className="text-xs text-blue-600 font-bold mb-2 flex items-center gap-1">
+                                  <ImageIcon className="w-3.5 h-3.5" /> أدخل رقم الحوالة المصرفية *
+                                </p>
+                                <label className="cursor-pointer flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl text-sm font-bold text-blue-600 transition-colors">
+                                  <ImageIcon className="w-4 h-4" />
+                                  {receiptFile ? "تم إدخال الرقم" : "أدخل رقم الحوالة"}
+                                  <input type="text" placeholder="اكتب رقم الحوالة هنا..." className="w-full h-12 px-4 mt-2 border-2 border-blue-300 rounded-xl font-bold text-blue-900 focus:outline-none" value={receiptFile || ""} onChange={(e) => setReceiptFile(e.target.value)} />
+                                </label>
+                                {receiptFile && (
+                                  <img src={receiptFile} alt="السند" className="mt-3 rounded-xl max-h-40 object-contain border border-blue-200" />
+                                )}
+                              </div>
                             </div>
                           </motion.div>
                         )}

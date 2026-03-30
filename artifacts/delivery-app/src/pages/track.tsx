@@ -1,4 +1,3 @@
-import { Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Search, Package, CheckCircle2, Truck, Clock, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 import { useTrackOrder, TrackResult } from "@/hooks/use-orders";

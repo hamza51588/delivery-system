@@ -220,7 +220,7 @@ function OrderCard({
                   )}
                 </div>
               </div>
-              {!order.paymentReceiptImage && <p className="text-xs text-gray-500 mt-1">لم يرفع الزبون صورة السند بعد</p>}
+              {!order.paymentReceiptImage && <p className="text-xs text-gray-500 mt-1">لم يقم الزبون بإدخال رقم الحوالة</p>}
             </div>
           )}
 

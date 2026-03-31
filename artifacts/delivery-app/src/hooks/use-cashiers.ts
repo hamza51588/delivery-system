@@ -40,7 +40,7 @@ export function useDeleteCashier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/cashiers/${id}`, { method: "DELETE" });
+      const res = await fetch(`https://delivery-system-s41p.onrender.com/api/cashiers/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("فشل الحذف");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),

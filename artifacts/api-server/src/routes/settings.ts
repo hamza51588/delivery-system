@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   footerText: "حمزة محمد المروني للتواصل 775864948.",
   adminPin: "1234",
   logoImage: "",
+  bankAccounts: '[{"bank":"العمقي","name":"محمد - حساب العمقي","number":"999888777"},{"bank":"الكريمي","name":"محمد (الكريمي)","number":"12345678"},{"bank":"البسيري","name":"محمد (البسيري)","number":"87654321"},{"bank":"النجم","name":"محمد (النجم)","number":"11223344"},{"bank":"امتياز","name":"محمد (امتياز)","number":"55667788"}]',
   bankName: "بنك العملاقي",
   bankAccountName: "",
   bankAccountNumber: "",

@@ -1,1 +1,7 @@
-{ "rewrites": [ { "source": "/(.*)", "destination": "/index.html" } ] }
+{
+  "buildCommand": "PORT=10000 BASE_PATH=/ npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

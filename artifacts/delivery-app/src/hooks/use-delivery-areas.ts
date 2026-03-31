@@ -40,7 +40,7 @@ export function useUpdateDeliveryArea() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...data }: { id: number; name?: string; price?: number; isActive?: boolean }) => {
-      const res = await fetch(`/api/delivery-areas/${id}`, {
+      const res = await fetch(`https://delivery-system-s41p.onrender.com/api/delivery-areas/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -56,7 +56,7 @@ export function useDeleteDeliveryArea() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/delivery-areas/${id}`, { method: "DELETE" });
+      const res = await fetch(`https://delivery-system-s41p.onrender.com/api/delivery-areas/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("فشل الحذف");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),

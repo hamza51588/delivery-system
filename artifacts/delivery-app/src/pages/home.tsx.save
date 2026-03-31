@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useRef, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,20 +33,29 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-    const data = await res.json();
-    return data.display_name || `${lat}, ${lng}`;
-  } catch (e) {
-    return `${lat}, ${lng}`;
-  }
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ar`,
+    { headers: { "Accept-Language": "ar" } }
+  );
+  if (!res.ok) throw new Error("فشل");
+  const data = await res.json();
+  const a = data.address || {};
+  const parts = [
+    a.road || a.pedestrian || a.footway,
+    a.neighbourhood || a.suburb || a.quarter,
+    a.city || a.town || a.village || a.county,
+    a.state,
+    a.country,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join("، ") : data.display_name || "";
 }
 
 export default function Home() {
+  const [selectedBank, setSelectedBank] = useState(\"الكريمي\");
   const { toast } = useToast();
   const createOrder = useCreateOrder();
   const uploadReceipt = useUploadReceipt();
-  
+  const { data: settings } = useSettings();
   const { data: areas } = useDeliveryAreas();
   const activeAreas = areas?.filter(a => a.isActive) || [];
 
@@ -58,35 +67,7 @@ export default function Home() {
   const [receiptFile, setReceiptFile] = useState<string | null>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: settings } = useSettings();
   const s = settings;
-
-  const [selectedBank, setSelectedBank] = useState<string>("الكريمي");
-  
-  const { BANK_DATA, AVAILABLE_BANKS } = useMemo(() => {
-    const data: any = {};
-    try {
-      if (s?.bankName && s.bankName.includes("[")) {
-        const arr = JSON.parse(s.bankName);
-        if (Array.isArray(arr)) {
-          arr.forEach((b: any) => {
-            if (b.bank) data[b.bank] = { name: b.name || "", number: b.number || "" };
-          });
-        }
-      } else if (s?.bankName) {
-        data[s.bankName] = { name: s?.bankAccountName || "", number: s?.bankAccountNumber || "" };
-      }
-    } catch(e) { console.error("Parse error:", e); }
-
-    const keys = Object.keys(data);
-    const available = keys.length > 0 ? keys : (s?.bankName && !s.bankName.includes("[") ? [s.bankName] : ["الكريمي"]);
-
-    const proxy = new Proxy(data, {
-      get: (target, prop: string) => target[prop] || { name: s?.bankAccountName || "الرجاء التواصل مع الإدارة", number: s?.bankAccountNumber || "غير متوفر" }
-    });
-
-    return { BANK_DATA: proxy, AVAILABLE_BANKS: available };
-  }, [s?.bankName, s?.bankAccountName, s?.bankAccountNumber]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -112,7 +93,7 @@ export default function Home() {
         try {
           const { latitude: lat, longitude: lng } = pos.coords;
           const address = await reverseGeocode(lat, lng);
-          const link = "https://maps.google.com/?q=" + lat + "," + lng;
+          const link = `https://www.google.com/maps?q=${lat},${lng}`;
           form.setValue("address", address, { shouldValidate: true });
           setGpsCoords({ lat, lng });
           setGpsLink(link);
@@ -141,7 +122,11 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-    const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
+    if (false) {
+      toast({ title: "يرجى رفع صورة سند التحويل", variant: "destructive" });
+      return;
+    }
     try {
       const payload: Record<string, unknown> = {
         customerName: data.customerName,
@@ -152,26 +137,18 @@ export default function Home() {
         deliveryArea: data.deliveryArea || null,
         deliveryAreaPrice: selectedAreaData?.price ?? null,
         paymentMethod: data.paymentMethod,
-        paymentReceiptImage: `${selectedBank} - ${receiptFile}`,
         locationLat: gpsCoords?.lat ?? null,
         locationLng: gpsCoords?.lng ?? null,
         locationLink: gpsLink ?? null,
       };
-
       const order = await createOrder.mutateAsync(payload);
-      
+      if (data.paymentMethod === "bank_transfer" && receiptFile) {
+        await uploadReceipt.mutateAsync({ id: order.id, image: receiptFile });
+      }
       setOrderNum(order.id);
       setIsSuccess(true);
       toast({ title: "✅ تم إرسال طلبك بنجاح!" });
-      
-      setTimeout(() => { 
-        form.reset(); 
-        setIsSuccess(false); 
-        setOrderNum(null); 
-        setReceiptFile(null); 
-        setGpsLink(null); 
-        setGpsCoords(null); 
-      }, 10000);
+      setTimeout(() => { form.reset(); setIsSuccess(false); setOrderNum(null); setReceiptFile(null); setGpsLink(null); setGpsCoords(null); }, 10000);
     } catch {
       toast({ title: "حدث خطأ", description: "تعذر إرسال الطلب، الرجاء المحاولة لاحقاً.", variant: "destructive" });
     }
@@ -363,7 +340,7 @@ export default function Home() {
               <div className="space-y-2 mb-4">
                 <label className="text-xs font-bold text-blue-700">اختر البنك أو شركة الصرافة:</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {AVAILABLE_BANKS.map(b => (
+                  {["الكريمي", "البسيري", "النجم", "امتياز", "أخرى"].map(b => (
                     <button key={b} type="button" onClick={() => setSelectedBank(b)}
                       className={`py-2 px-1 rounded-xl border-2 text-xs font-bold transition-all ${selectedBank === b ? "border-blue-600 bg-blue-600 text-white" : "border-blue-200 bg-white text-blue-600"}`}>
                       {b}
@@ -375,10 +352,10 @@ export default function Home() {
                                 <CreditCard className="w-4 h-4" /> بيانات التحويل المصرفي
                               </p>
                               <div className="text-sm text-blue-700 space-y-1.5 font-medium">
-                                  <p>البنك: {selectedBank}</p>
-                                  <p>اسم الحساب: {BANK_DATA[selectedBank].name}</p>
-                                  <p>رقم الحساب: {BANK_DATA[selectedBank].number}</p>
-                                </div>
+                                <p>البنك: <span className="font-bold">{s?.bankName || "بنك العملاقي"}</span></p>
+                                {s?.bankAccountName && <p>اسم الحساب: <span className="font-bold">{s.bankAccountName}</span></p>}
+                                {s?.bankAccountNumber && <p>رقم الحساب: <span className="font-bold" dir="ltr">{s.bankAccountNumber}</span></p>}
+                              </div>
                               <div className="pt-1">
                                 <p className="text-xs text-blue-600 font-bold mb-2 flex items-center gap-1">
                                   <ImageIcon className="w-3.5 h-3.5" /> أدخل رقم الحوالة المصرفية *

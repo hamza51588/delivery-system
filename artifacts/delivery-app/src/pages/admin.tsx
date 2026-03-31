@@ -127,7 +127,7 @@ function OrderCard({
   return (
     <>
       {showReceipt && order.paymentReceiptImage && (
-        <ReceiptModal src={order.paymentReceiptImage} onClose={() => setShowReceipt(false)} />
+        <ReceiptModal src={order.paymentReceiptImage?.includes(" - ") ? order.paymentReceiptImage.split(" - ")[0] : "البنك"} onClose={() => setShowReceipt(false)} />
       )}
       <Card className="border border-border/50 shadow-md hover:shadow-xl transition-all rounded-2xl overflow-hidden">
         <div className={`h-1.5 w-full ${order.paymentMethod === "bank_transfer" ? "bg-gradient-to-r from-blue-400 to-blue-600" : "bg-gradient-to-r from-primary to-orange-400"}`}></div>
@@ -201,7 +201,18 @@ function OrderCard({
                   <CreditCard className="w-4 h-4 text-blue-600" /> سند تحويل مصرفي
                 </p>
                 <div className="flex items-center gap-2">
-                  {order.paymentReceiptImage && <div className="w-full mt-2 px-3 py-2 bg-blue-100 text-blue-900 rounded-lg font-bold border border-blue-300">رقم الحوالة: <span className="text-lg font-black tracking-widest mr-2">{order.paymentReceiptImage}</span></div>}
+                  {order.paymentReceiptImage && (
+                    <div className="w-full mt-2 space-y-1">
+                      <div className="px-3 py-1 bg-blue-600 text-white rounded-t-xl font-bold text-xs">
+                        البنك: {order.paymentReceiptImage?.includes(" - ") ? order.paymentReceiptImage.split(" - ")[0] : "البنك"}
+                      </div>
+                      <div className="px-3 py-2 bg-blue-50 text-blue-900 rounded-b-xl font-bold border border-blue-200">
+                        رقم الحوالة: <span className="text-lg font-black tracking-widest mr-2">
+                          {order.paymentReceiptImage?.includes(" - ") ? order.paymentReceiptImage.split(" - ")[1] : order.paymentReceiptImage}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   {!order.paymentVerified ? (
                     <button onClick={() => onVerifyPayment(order.id, true)}
                       className="flex items-center gap-1 text-xs text-white bg-green-500 hover:bg-green-600 font-bold px-2 py-1 rounded-lg">
@@ -230,26 +241,22 @@ function OrderCard({
                 <button onClick={() => onAssign(order, null)} className="text-xs text-red-400 hover:text-red-600 font-bold">إلغاء</button>
               </div>
             ) : (
-              <div className="relative">
-                <button onClick={() => setShowDrivers(v => !v)}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 text-sm font-bold text-gray-600 border border-dashed border-gray-300 rounded-xl hover:border-primary hover:text-primary transition-colors">
-                  <span className="flex items-center gap-2"><Truck className="w-4 h-4" /> تعيين سائق</span>
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                {showDrivers && (
-                  <div className="absolute z-[9999] top-full max-h-[200px] overflow-y-auto mt-1 right-0 left-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
-                    {isDriversLoading ? <p className="p-3 text-sm text-gray-500">جاري التحميل...</p>
-                      : drivers?.length === 0 ? <p className="p-3 text-sm text-gray-500">لا يوجد سائقون</p>
-                      : drivers?.map(d => (
-                        <button key={d.id} onClick={() => { onAssign(order, d); setShowDrivers(false); }}
-                          className="w-full text-right px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors flex items-center gap-2">
-                          <Truck className="w-4 h-4" /> {d.name}
-                          {d.phone && <span className="text-gray-400 font-normal text-xs" dir="ltr">{d.phone}</span>}
-                        </button>
+              <div className="w-full mt-2">
+                    <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
+                      <Truck className="w-3.5 h-3.5" /> مرر لاختيار سائق:
+                    </p>
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 snap-x [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                      {isDriversLoading ? <p className="text-sm text-gray-500 whitespace-nowrap">جاري التحميل...</p>
+                        : drivers?.length === 0 ? <p className="text-sm text-gray-500 whitespace-nowrap">لا يوجد سائقون</p>
+                        : drivers?.map(d => (
+                          <button key={d.id} onClick={() => onAssign(order, d)}
+                            className="flex-shrink-0 snap-start px-4 py-2 bg-white border-2 border-dashed border-blue-200 rounded-xl hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all text-sm font-bold flex flex-col items-center gap-1 text-gray-700">
+                            <span className="flex items-center gap-1.5"><Truck className="w-4 h-4" /> {d.name}</span>
+                            {d.phone && <span className="text-gray-400 font-normal text-xs" dir="ltr">{d.phone}</span>}
+                          </button>
                       ))}
+                    </div>
                   </div>
-                )}
-              </div>
             )}
           </div>
 
@@ -529,11 +536,21 @@ export default function Admin() {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center"><Truck className="w-6 h-6" /></div>
                     <div>
-                      <p className="font-bold text-gray-900 text-lg">{driver.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-gray-900 text-lg">{driver.name}</p>
+                        <span className={`w-3 h-3 rounded-full ${driver.isAvailable !== false ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-red-500"}`} title={driver.isAvailable !== false ? "متاح" : "مشغول"}></span>
+                      </div>
                       {driver.phone && <p className="text-sm text-gray-500" dir="ltr">{driver.phone}</p>}
+                      {driver.loginCode ? (
+                        <p className="text-xs font-mono bg-blue-50 text-blue-700 px-2 py-1 rounded-md mt-1 border border-blue-100 w-fit">
+                          كود الدخول: <span className="font-bold tracking-widest">{driver.loginCode}</span>
+                        </p>
+                      ) : (
+                        <p className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-md mt-1 w-fit">السائق قديم (احذفه وأضفه مجدداً لتوليد كود)</p>
+                      )}
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("حذف هذا السائق؟")) deleteDriver.mutateAsync(driver.id); }}
+                  <Button variant="ghost" size="icon" onClick={async () => { if (confirm("حذف هذا السائق نهائياً؟")) { try { await deleteDriver.mutateAsync(driver.id); toast({ title: "تم حذف السائق بنجاح" }); } catch(e) { toast({ title: "حدث خطأ أثناء الحذف", variant: "destructive" }); } } }}
                     className="text-red-500 hover:bg-red-50 h-10 w-10 rounded-xl"><Trash2 className="w-5 h-5" /></Button>
                 </div>
               ))
@@ -590,7 +607,7 @@ export default function Admin() {
                           {area.isActive ? "نشط" : "مخفي"}
                         </button>
                         <Button variant="ghost" size="icon"
-                          onClick={() => { if (confirm("حذف هذه المنطقة؟")) deleteArea.mutateAsync(area.id); }}
+                          onClick={async () => { if (confirm("حذف هذه المنطقة نهائياً؟")) { try { await deleteArea.mutateAsync(area.id); toast({ title: "تم حذف المنطقة بنجاح" }); } catch(e) { toast({ title: "حدث خطأ أثناء الحذف", variant: "destructive" }); } } }}
                           className="text-red-500 hover:bg-red-50 h-9 w-9 rounded-xl"><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </div>
@@ -632,7 +649,7 @@ export default function Admin() {
                     </div>
                   </div>
                   <Button variant="ghost" size="icon"
-                    onClick={() => { if (confirm("حذف هذا الرقم؟")) deletePhone.mutateAsync({ id: phone.id }); }}
+                    onClick={async () => { if (confirm("حذف هذا الرقم نهائياً؟")) { try { await deletePhone.mutateAsync({ id: phone.id }); toast({ title: "تم حذف الرقم بنجاح" }); } catch(e) { toast({ title: "حدث خطأ أثناء الحذف", variant: "destructive" }); } } }}
                     className="text-red-500 hover:bg-red-50 h-10 w-10 rounded-xl"><Trash2 className="w-5 h-5" /></Button>
                 </div>
               ))
@@ -680,15 +697,62 @@ export default function Admin() {
                 <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
                   <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Banknote className="w-5 h-5 text-primary" /> الدفع المصرفي والأمان</CardTitle></CardHeader>
                   <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <FormField control={settingsForm.control} name="bankName" render={({ field }) => (
-                      <FormItem><FormLabel className="font-bold">اسم البنك</FormLabel><FormControl><Input placeholder="بنك العملاقي" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={settingsForm.control} name="bankAccountName" render={({ field }) => (
-                      <FormItem><FormLabel className="font-bold">اسم صاحب الحساب</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={settingsForm.control} name="bankAccountNumber" render={({ field }) => (
-                      <FormItem><FormLabel className="font-bold">رقم الحساب</FormLabel><FormControl><Input dir="ltr" className="h-12 rounded-xl text-right" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <div className="col-span-1 sm:col-span-2 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <label className="text-sm font-bold text-base block text-gray-700">الحسابات البنكية المتاحة</label>
+        <button type="button" onClick={() => {
+          let current = [];
+          try { 
+            const val = settingsForm.getValues("bankName");
+            if(val && val.startsWith("[")) current = JSON.parse(val);
+            else if(val) current = [{bank: val, name: settingsForm.getValues("bankAccountName") || "", number: settingsForm.getValues("bankAccountNumber") || ""}];
+          } catch(e) {}
+          current.push({bank: "بنك جديد", name: "", number: ""});
+          settingsForm.setValue("bankName", JSON.stringify(current), {shouldDirty: true});
+        }} className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-600 hover:text-white transition-colors">
+          + إضافة بنك
+        </button>
+      </div>
+      <FormField control={settingsForm.control} name="bankName" render={({ field }) => {
+        let banks = [];
+        try {
+          if (field.value && field.value.startsWith("[")) {
+            banks = JSON.parse(field.value);
+          } else if (field.value) {
+            banks = [{ bank: field.value, name: settingsForm.getValues("bankAccountName") || "", number: settingsForm.getValues("bankAccountNumber") || "" }];
+          }
+        } catch(e) {}
+        if (!Array.isArray(banks)) banks = [];
+
+        return (
+          <div className="space-y-3">
+            {banks.map((b, i) => (
+              <div key={i} className="flex flex-col sm:flex-row gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200 relative">
+                <Input className="flex-1 h-10 border-gray-300" placeholder="اسم البنك (العمقي، الكريمي...)" value={b.bank} onChange={e => {
+                  const nb = [...banks]; nb[i].bank = e.target.value; field.onChange(JSON.stringify(nb));
+                }} />
+                <Input className="flex-1 h-10 border-gray-300" placeholder="اسم الحساب" value={b.name} onChange={e => {
+                  const nb = [...banks]; nb[i].name = e.target.value; field.onChange(JSON.stringify(nb));
+                }} />
+                <Input className="flex-1 h-10 border-gray-300 text-left" placeholder="رقم الحساب" dir="ltr" value={b.number} onChange={e => {
+                  const nb = [...banks]; nb[i].number = e.target.value; field.onChange(JSON.stringify(nb));
+                }} />
+                <button type="button" onClick={() => {
+                  const nb = banks.filter((_, idx) => idx !== i); field.onChange(JSON.stringify(nb));
+                }} className="bg-red-50 text-red-500 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-500 hover:text-white transition-colors">
+                  حذف
+                </button>
+              </div>
+            ))}
+            {banks.length === 0 && <p className="text-sm text-gray-400 text-center py-4 border-2 border-dashed border-gray-200 rounded-xl">لا توجد حسابات مضافة. اضغط "إضافة بنك".</p>}
+          </div>
+        );
+      }} />
+      <div className="hidden">
+        
+        
+      </div>
+    </div>
                     <FormField control={settingsForm.control} name="adminPin" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold flex items-center gap-2"><Lock className="w-4 h-4" /> الرمز السري للإدارة</FormLabel>

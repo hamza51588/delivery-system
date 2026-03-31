@@ -332,7 +332,7 @@ export default function Admin() {
       formTitle: "سجل طلبك الآن", formSubtitle: "أدخل تفاصيل الطلب وسنتواصل معك فوراً",
       successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
       primaryColor: "#FF6B35",
-      whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
+      whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}\n🗺️ *المنطقة:* {area}\n💵 *الدفع:* {paymentMethod} | *التوصيل:* {deliveryFee}",
       footerText: "حمزة محمد المروني للتواصل 775864948  .", adminPin: "1234", logoImage: "",
       bankName: "بنك العملاقي", bankAccountName: "", bankAccountNumber: "",
     },
@@ -388,14 +388,20 @@ export default function Admin() {
   };
 
   const onWhatsApp = (order: Order) => {
-    const tpl = settings?.whatsappTemplate || "🛵 *طلب #{id}*\n👤 {customerName}\n📞 {customerPhone}\n📍 {address}\n📦 {orderDetails}\n📝 {notes}";
+    const tpl = settings?.whatsappTemplate || "🛵 *طلب #{id}*\n👤 {customerName}\n📞 {customerPhone}\n📍 {address}\n📦 {orderDetails}\n📝 {notes}\n🗺️ {area}\n💵 {paymentMethod} (توصيل: {deliveryFee})";
     let text = tpl
       .replace("{id}", String(order.id))
       .replace("{customerName}", order.customerName)
       .replace("{customerPhone}", order.customerPhone)
       .replace("{address}", order.address)
       .replace("{orderDetails}", order.orderDetails)
-      .replace("{notes}", order.notes || "لا يوجد");
+      .replace("{notes}", order.notes || "لا يوجد")
+      .replace("{area}", (order as any).deliveryArea?.name || (order as any).area || "غير محدد")
+      .replace("{deliveryFee}", (order as any).deliveryFee ? String((order as any).deliveryFee) : "0")
+      .replace("{paymentMethod}", (order as any).paymentMethod === "cash" ? "عند الاستلام" : (order as any).paymentMethod === "transfer" ? "تحويل بنكي" : ((order as any).paymentMethod || "غير محدد"))
+      .replace("{area}", (order as any).deliveryArea?.name || (order as any).area || "غير محدد")
+      .replace("{deliveryFee}", (order as any).deliveryFee ? String((order as any).deliveryFee) : "0")
+      .replace("{paymentMethod}", (order as any).paymentMethod === "cash" ? "عند الاستلام" : (order as any).paymentMethod === "transfer" ? "تحويل بنكي" : ((order as any).paymentMethod || "غير محدد"));
     if (order.locationLink) text += `\n🗺️ الموقع: ${order.locationLink}`;
     const encoded = encodeURIComponent(text);
     const targetPhones = Array.isArray(phones) && phones.length > 0 ? (phones || []).map(p => p.phoneNumber) : ["967775864948"];
@@ -802,7 +808,7 @@ export default function Admin() {
                     <FormField control={settingsForm.control} name="whatsappTemplate" render={({ field }) => (
                       <FormItem>
                         <FormDescription className="text-xs text-gray-500 leading-relaxed mb-2">
-                          المتغيرات: {["{id}", "{customerName}", "{customerPhone}", "{address}", "{orderDetails}", "{notes}"].map(v => (
+                          المتغيرات: {["{id}", "{customerName}", "{customerPhone}", "{address}", "{orderDetails}", "{notes}", "{area}", "{deliveryFee}", "{paymentMethod}"].map(v => (
                             <code key={v} className="bg-gray-100 px-1.5 py-0.5 rounded text-xs ml-1">{v}</code>
                           ))}
                           <br /><em className="text-gray-400">رابط الموقع يُضاف تلقائياً إذا توفر</em>

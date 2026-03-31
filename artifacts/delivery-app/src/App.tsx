@@ -1,4 +1,4 @@
-import DriverDashboard from "@/pages/driver";
+import DriverDashboard from "./pages/driver";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -43,7 +43,6 @@ function ColorApplier() {
   return null;
 }
 
-/* Admin notification watcher — runs globally so admin gets alerts on any page */
 function AdminNotifier() {
   const { data: orders } = useOrders();
   const lastIdRef = useRef<number | null>(null);
@@ -81,6 +80,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/admin" component={Admin} />
+      <Route path="/driver" component={DriverDashboard} />
       <Route path="/track" component={Track} />
       <Route component={NotFound} />
     </Switch>

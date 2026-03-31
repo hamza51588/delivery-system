@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   formSubtitle: "أدخل تفاصيل الطلب وسنتواصل معك فوراً",
   successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
   primaryColor: "#FF6B35",
-  whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
+  whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}\n🗺️ *المنطقة:* {area}\n💵 *الدفع:* {paymentMethod} | *التوصيل:* {deliveryFee}",
   footerText: "حمزة محمد المروني للتواصل 775864948  .",
   adminPin: "1234",
   logoImage: "",

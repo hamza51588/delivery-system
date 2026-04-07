@@ -4,19 +4,20 @@ import { eq } from "drizzle-orm";
 
 const router = Router();
 
+// 🚀 [الرادار] ذاكرة عشوائية سريعة جداً لحفظ مواقع السائقين الحية بدون إرهاق قاعدة البيانات
+export const driverLocations = new Map<number, { lat: number, lng: number }>();
+
 router.get("/drivers", async (_req, res) => {
   const drivers = await db.select().from(driversTable);
   res.json(drivers.filter(d => d.name && d.name !== "deleted"));
 });
 
 router.post("/drivers", async (req, res) => {
-  // توليد كود دخول عشوائي من 4 أرقام لكل سائق جديد
   const loginCode = Math.floor(1000 + Math.random() * 9000).toString();
   const [driver] = await db.insert(driversTable).values({ ...req.body, loginCode, isAvailable: true }).returning();
   res.json(driver);
 });
 
-// المسار الجديد: السماح للسائق بتغيير حالته (متاح / غير متاح)
 router.post("/drivers/:id/toggle-status", async (req, res) => {
   const id = Number(req.params.id);
   const { isAvailable } = req.body;
@@ -24,7 +25,24 @@ router.post("/drivers/:id/toggle-status", async (req, res) => {
   res.json(driver);
 });
 
-// المسار الجديد: تسجيل دخول السائق باستخدام الرمز السري
+// 📍 مسار استلام الموقع الحي من تطبيق المندوب (يستقبل الإحداثيات كل 30 ثانية)
+router.post("/drivers/:id/location", (req, res) => {
+  const id = Number(req.params.id);
+  const { lat, lng } = req.body;
+  if (lat && lng) {
+    driverLocations.set(id, { lat, lng });
+  }
+  res.json({ success: true });
+});
+
+// للضمان لو كان الهوك في الواجهة يستخدم طريقة التحديث العامة (PATCH)
+router.patch("/drivers/:id/location", (req, res) => {
+  const id = Number(req.params.id);
+  const { lat, lng } = req.body;
+  if (lat && lng) driverLocations.set(id, { lat, lng });
+  res.json({ success: true });
+});
+
 router.get("/drivers/login/:code", async (req, res) => {
   const code = req.params.code;
   const drivers = await db.select().from(driversTable).where(eq(driversTable.loginCode, code));
@@ -38,7 +56,6 @@ router.get("/drivers/login/:code", async (req, res) => {
 router.delete("/drivers/:id", async (req, res) => {
   const id = Number(req.params.id);
   try {
-    // تصفير بيانات السائق المحذوف بالكامل عشان ما يخرب السجلات
     await db.update(driversTable).set({ name: "deleted", phone: "", loginCode: null }).where(eq(driversTable.id, id));
     await db.update(ordersTable).set({ assignedDriverId: null, assignedDriverName: null }).where(eq(ordersTable.assignedDriverId, id));
     res.json({ success: true });

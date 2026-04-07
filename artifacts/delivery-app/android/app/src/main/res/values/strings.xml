@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tlabak 3alena</string>
+    <string name="title_activity_main">Tlabak 3alena</string>
+    <string name="package_name">com.tlabak.app</string>
+    <string name="custom_url_scheme">com.tlabak.app</string>
+</resources>

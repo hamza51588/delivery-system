@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "492217520270",
+    "project_id": "tlabak-8b592",
+    "storage_bucket": "tlabak-8b592.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:492217520270:android:7927199d53f0e08c6179df",
+        "android_client_info": {
+          "package_name": "com.tlabak.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3WIA38fLpLK3opN4Wks2nrzZS0LWLI6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,7 +1,4 @@
 {
-  "buildCommand": "PORT=10000 BASE_PATH=/ npm run build",
-  "outputDirectory": "dist",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm run build"
 }

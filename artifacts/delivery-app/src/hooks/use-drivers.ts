@@ -42,6 +42,20 @@ async function toggleStatus(data: { id: number; isAvailable: boolean }): Promise
   return res.json();
 }
 
+// 🎯 الدالة الجديدة: إرسال موقع المندوب للسيرفر
+async function updateLocation(data: { id: number; lat: number; lng: number }): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE}/api/drivers/${data.id}/location`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat: data.lat, lng: data.lng }),
+    });
+    // ما نطلع رسالة خطأ هنا عشان ما نزعج المندوب لو انقطع النت ثانية
+  } catch (error) {
+    console.log("لم يتم إرسال الموقع: ", error);
+  }
+}
+
 export async function loginDriver(code: string): Promise<Driver> {
   const res = await fetch(`${API_BASE}/api/drivers/login/${code}`);
   if (!res.ok) throw new Error("رمز غير صحيح");
@@ -74,4 +88,9 @@ export function useToggleDriverStatus() {
     mutationFn: toggleStatus,
     onSuccess: () => qc.invalidateQueries({ queryKey: ["drivers"] }),
   });
+}
+
+// 🎯 الهوك الجديد اللي بنستخدمه في صفحة المندوب
+export function useUpdateDriverLocation() {
+  return useMutation({ mutationFn: updateLocation });
 }

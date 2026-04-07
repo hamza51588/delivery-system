@@ -1,29 +1,27 @@
+import express, { type Request, Response, NextAction } from "express";
 import cors from "cors";
-import app from "./app";
-import { logger } from "./lib/logger";
+import path from "path";
+import ordersRouter from "./routes/orders";
+import driversRouter from "./routes/drivers";
+import phonesRouter from "./routes/phones";
+import settingsRouter from "./routes/settings";
+import areasRouter from "./routes/areas";
 
-// تفعيل حارس الحدود (CORS) ليسمح بطلبات لابتوبك
-app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "Authorization"] }));
+const app = express();
 
-const rawPort = process.env["PORT"];
+// إعداد CORS للسماح بالاتصال من أي مكان (مهم للإنترنت)
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json({ limit: '50mb' }));
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
+// مسارات النظام
+app.use("/api", ordersRouter);
+app.use("/api", driversRouter);
+app.use("/api", phonesRouter);
+app.use("/api", settingsRouter);
+app.use("/api", areasRouter);
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-app.listen(port, (err) => {
-  if (err) {
-    logger.error({ err }, "Error listening on port");
-    process.exit(1);
-  }
-
-  logger.info({ port }, "Server listening");
+// تشغيل السيرفر على البورت اللي تحدده المنصة أو 5000
+const PORT = process.env.PORT || 5000;
+app.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`🚀 Server is running globally on port ${PORT}`);
 });

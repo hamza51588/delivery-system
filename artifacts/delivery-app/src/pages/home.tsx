@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Send, MapPin, Phone, User, Package as PackageIcon,
   FileText, CheckCircle2, LocateFixed, Loader2,
-  CreditCard, Banknote, Image as ImageIcon, ExternalLink,
+  CreditCard, Banknote, Image as ImageIcon, ExternalLink, Camera as CameraIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -55,8 +55,10 @@ export default function Home() {
   const [locating, setLocating] = useState(false);
   const [gpsLink, setGpsLink] = useState<string | null>(null);
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [receiptFile, setReceiptFile] = useState<string | null>(null);
-  const receiptInputRef = useRef<HTMLInputElement>(null);
+  
+  // --- الحقول الجديدة للحوالة ---
+  const [transferNumber, setTransferNumber] = useState("");
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
   const { data: settings } = useSettings();
   const s = settings;
@@ -137,22 +139,27 @@ export default function Home() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setReceiptFile(reader.result as string);
+    reader.onload = () => setReceiptImage(reader.result as string);
     reader.readAsDataURL(file);
   };
 
     const onSubmit = async (data: FormValues) => {
     try {
+      // دمج البنك ورقم الحوالة في الملاحظات لتوثيقها للإدارة
+      const finalNotes = data.paymentMethod === "bank_transfer" 
+        ? (data.notes ? `${data.notes} \n (البنك: ${selectedBank}${transferNumber ? ' - رقم الحوالة: ' + transferNumber : ''})` : `(البنك: ${selectedBank}${transferNumber ? ' - رقم الحوالة: ' + transferNumber : ''})`)
+        : data.notes;
+
       const payload: Record<string, unknown> = {
         customerName: data.customerName,
         customerPhone: data.customerPhone,
         address: data.address,
         orderDetails: data.orderDetails,
-        notes: data.notes || null,
+        notes: finalNotes || null,
         deliveryArea: data.deliveryArea || null,
         deliveryFee: selectedAreaData?.price ?? null,
         paymentMethod: data.paymentMethod,
-        paymentReceiptImage: (receiptFile ? selectedBank + " - " + receiptFile : null),
+        paymentReceiptImage: receiptImage || null,
         locationLat: gpsCoords?.lat ?? null,
         locationLng: gpsCoords?.lng ?? null,
         locationLink: gpsLink ?? null,
@@ -168,7 +175,8 @@ export default function Home() {
         form.reset(); 
         setIsSuccess(false); 
         setOrderNum(null); 
-        setReceiptFile(null); 
+        setReceiptImage(null); 
+        setTransferNumber("");
         setGpsLink(null); 
         setGpsCoords(null); 
       }, 10000);
@@ -231,7 +239,7 @@ export default function Home() {
                     <ExternalLink className="w-4 h-4" /> تتبع حالة طلبك
                   </a>
                   <Button variant="outline" className="rounded-xl border-2 font-bold"
-                    onClick={() => { setIsSuccess(false); form.reset(); setOrderNum(null); setReceiptFile(null); setGpsLink(null); }}>
+                    onClick={() => { setIsSuccess(false); form.reset(); setOrderNum(null); setReceiptImage(null); setTransferNumber(""); setGpsLink(null); }}>
                     طلب جديد
                   </Button>
                 </motion.div>
@@ -355,42 +363,78 @@ export default function Home() {
                         </FormItem>
                       )} />
 
-                      {/* Bank Transfer Details */}
+                      {/* Bank Transfer Details (التصميم الجديد) */}
                       <AnimatePresence>
                         {paymentMethod === "bank_transfer" && (
                           <motion.div key="bank" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
-              <div className="space-y-2 mb-4">
-                <label className="text-xs font-bold text-blue-700">اختر البنك أو شركة الصرافة:</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {AVAILABLE_BANKS.map(b => (
-                    <button key={b} type="button" onClick={() => setSelectedBank(b)}
-                      className={`py-2 px-1 rounded-xl border-2 text-xs font-bold transition-all ${selectedBank === b ? "border-blue-600 bg-blue-600 text-white" : "border-blue-200 bg-white text-blue-600"}`}>
-                      {b}
-                    </button>
-                  ))}
-                </div>
-              </div>
-                              <p className="font-bold text-blue-800 text-sm flex items-center gap-2">
-                                <CreditCard className="w-4 h-4" /> بيانات التحويل المصرفي
-                              </p>
-                              <div className="text-sm text-blue-700 space-y-1.5 font-medium">
+                            <div className="bg-[#f8fafc] border border-blue-200 rounded-2xl p-4 space-y-4">
+                              <div className="space-y-2">
+                                <label className="text-xs font-bold text-blue-800">اختر البنك أو شركة الصرافة:</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {AVAILABLE_BANKS.map(b => (
+                                    <button key={b} type="button" onClick={() => setSelectedBank(b)}
+                                      className={`py-2 px-1 rounded-xl border-2 text-xs font-bold transition-all ${selectedBank === b ? "border-blue-600 bg-white text-blue-600 shadow-sm" : "border-gray-200 bg-white text-gray-500"}`}>
+                                      {b}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              <div className="border-t border-blue-100 pt-3">
+                                <p className="font-bold text-blue-900 text-sm flex items-center gap-2 mb-2">
+                                  <CreditCard className="w-4 h-4" /> بيانات التحويل المصرفي
+                                </p>
+                                <div className="text-sm text-blue-700 space-y-1.5 font-medium bg-blue-50/50 p-3 rounded-xl border border-blue-100">
                                   <p>البنك: {selectedBank}</p>
                                   <p>اسم الحساب: {BANK_DATA[selectedBank].name}</p>
-                                  <p>رقم الحساب: {BANK_DATA[selectedBank].number}</p>
+                                  <p>رقم الحساب: <span className="font-bold" dir="ltr">{BANK_DATA[selectedBank].number}</span></p>
                                 </div>
-                              <div className="pt-1">
-                                <p className="text-xs text-blue-600 font-bold mb-2 flex items-center gap-1">
-                                  <ImageIcon className="w-3.5 h-3.5" /> أدخل رقم الحوالة المصرفية *
+                              </div>
+
+                              {/* المربع الجديد: إدخال الرقم والصور */}
+                              <div className="pt-2">
+                                <p className="text-xs text-blue-800 font-bold mb-2 flex items-center gap-1">
+                                  <FileText className="w-3.5 h-3.5" /> أدخل رقم الحوالة المصرفية *
                                 </p>
-                                <label className="cursor-pointer flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl text-sm font-bold text-blue-600 transition-colors">
-                                  <ImageIcon className="w-4 h-4" />
-                                  {receiptFile ? "تم إدخال الرقم" : "أدخل رقم الحوالة"}
-                                  <input type="text" placeholder="اكتب رقم الحوالة هنا..." className="w-full h-12 px-4 mt-2 border-2 border-blue-300 rounded-xl font-bold text-blue-900 focus:outline-none" value={receiptFile || ""} onChange={(e) => setReceiptFile(e.target.value)} />
-                                </label>
-                                {receiptFile && (
-                                  <img src={receiptFile} alt="السند" className="mt-3 rounded-xl max-h-40 object-contain border border-blue-200" />
-                                )}
+                                <input 
+                                  type="text" 
+                                  placeholder="رقم الحوالة المصرفية..." 
+                                  value={transferNumber} 
+                                  onChange={(e) => setTransferNumber(e.target.value)}
+                                  className="w-full h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 mb-4"
+                                />
+
+                                <div className="bg-[#eff6ff] border-2 border-dashed border-[#93c5fd] rounded-2xl p-4 relative">
+                                  <p className="text-xs text-center text-red-600 font-bold mb-3">إرفاق صورة السند (مطلوب)</p>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {/* Camera Button */}
+                                    <label className="cursor-pointer flex flex-col items-center justify-center gap-2 p-3 bg-[#e0e7ff] hover:bg-[#c7d2fe] border border-[#a5b4fc] rounded-xl text-[#4338ca] transition-colors shadow-sm">
+                                      <CameraIcon className="w-6 h-6" />
+                                      <span className="text-xs font-bold">تصوير السند</span>
+                                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleReceiptUpload} />
+                                    </label>
+                                    
+                                    {/* Gallery Button */}
+                                    <label className="cursor-pointer flex flex-col items-center justify-center gap-2 p-3 bg-white hover:bg-gray-50 border border-[#a5b4fc] rounded-xl text-[#4338ca] transition-colors shadow-sm">
+                                      <ImageIcon className="w-6 h-6" />
+                                      <span className="text-xs font-bold">إرفاق من الاستوديو</span>
+                                      <input type="file" accept="image/*" className="hidden" onChange={handleReceiptUpload} />
+                                    </label>
+                                  </div>
+                                  
+                                  {receiptImage && (
+                                    <div className="mt-4 relative group">
+                                      <img src={receiptImage} alt="السند" className="w-full h-40 object-cover rounded-xl border border-[#93c5fd] shadow-sm" />
+                                      <button 
+                                        type="button" 
+                                        onClick={() => setReceiptImage(null)} 
+                                        className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-red-600 font-bold"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </motion.div>

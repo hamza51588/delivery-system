@@ -49,3 +49,7 @@ Thumbs.db
 .local/
 .vercel
 .config/
+.aider*
+.env
+.env
+.env

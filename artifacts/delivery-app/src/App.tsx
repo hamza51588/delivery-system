@@ -22,6 +22,7 @@ function Router() {
         <Route path="/admin" component={Admin} />
         <Route path="/driver" component={DriverDashboard} />
         {/* هذا هو السطر الحساس لصفحة التتبع في الموقع */}
+        <Route path="/track" component={Track} />
         <Route path="/track/:id" component={Track} />
         <Route component={NotFound} />
       </Switch>

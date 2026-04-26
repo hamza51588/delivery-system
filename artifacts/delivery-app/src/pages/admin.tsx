@@ -1,3 +1,4 @@
+import { Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
@@ -6,7 +7,7 @@ import {
   FileText, Settings, Save, Palette, Lock,
   MessageCircle, Truck, CheckCircle2, XCircle, Image as ImageIcon,
   ChevronDown, BarChart3, TrendingUp, Calendar, ExternalLink,
-  CreditCard, Eye, ToggleLeft, ToggleRight, Banknote, Bell, Send, Package
+  CreditCard, Eye, Edit2, ToggleLeft, ToggleRight, Banknote,
 } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -17,16 +18,19 @@ import { usePhones, useAddPhone, useDeletePhone } from "@/hooks/use-phones";
 import { useSettings, useUpdateSettings, SiteSettings } from "@/hooks/use-settings";
 import { useDrivers, useAddDriver, useDeleteDriver } from "@/hooks/use-drivers";
 import { useDeliveryAreas, useAddDeliveryArea, useUpdateDeliveryArea, useDeleteDeliveryArea } from "@/hooks/use-delivery-areas";
+import { useCashiers, useAddCashier, useDeleteCashier } from "@/hooks/use-cashiers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import {
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription,
+} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/* ─── الحالات والألوان ─── */
+/* ─── status map ─── */
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   pending:    { label: "قيد الانتظار",  color: "bg-yellow-100 text-yellow-700" },
   assigned:   { label: "تم التعيين",    color: "bg-blue-100 text-blue-700" },
@@ -35,11 +39,11 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   cancelled:  { label: "ملغي",          color: "bg-red-100 text-red-700" },
 };
 
-/* ─── التحقق من صحة البيانات ─── */
+/* ─── schemas ─── */
 const phoneSchema = z.object({ phoneNumber: z.string().min(6), label: z.string().optional() });
 const driverSchema = z.object({ name: z.string().min(2, "الاسم مطلوب"), phone: z.string().optional() });
 const areaSchema = z.object({ name: z.string().min(1, "اسم المنطقة مطلوب"), price: z.coerce.number().min(0) });
-
+const cashierSchema = z.object({ name: z.string().min(2, "الاسم مطلوب"), phone: z.string().optional(), notes: z.string().optional() });
 const settingsSchema = z.object({
   siteName: z.string().min(1), siteTagline: z.string().min(1),
   heroTitle: z.string().min(1), heroTitleHighlight: z.string().min(1),
@@ -47,252 +51,259 @@ const settingsSchema = z.object({
   formTitle: z.string().min(1), formSubtitle: z.string().min(1),
   successMessage: z.string().min(1), primaryColor: z.string().min(4),
   whatsappTemplate: z.string().min(1), footerText: z.string().min(1),
-  adminPin: z.string().min(4), logoImage: z.string().optional(),
-  bankName: z.string(), bankAccountName: z.string().optional(), bankAccountNumber: z.string().optional(),
+  adminPin: z.string().min(4), logoImage: z.string(),
+  bankName: z.string(), bankAccountName: z.string(), bankAccountNumber: z.string(),
 });
 
-/* ═══ نافذة القفل (PIN) ═══ */
+/* ═══ PIN LOCK ═══ */
 function PinLock({ correctPin, onUnlock }: { correctPin: string; onUnlock: () => void }) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  
   useEffect(() => { inputRef.current?.focus(); }, []);
-  
   const check = () => {
     if (pin === correctPin) { onUnlock(); }
     else { setError(true); setPin(""); setTimeout(() => setError(false), 1200); }
   };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4" dir="rtl">
-      <div className="w-20 h-20 rounded-3xl bg-primary text-white flex items-center justify-center shadow-xl mb-6 shadow-primary/30">
-        <Lock className="w-10 h-10" />
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-8">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-orange-400 text-white flex items-center justify-center shadow-xl shadow-primary/30">
+          <Lock className="w-10 h-10" />
+        </div>
+        <h2 className="text-2xl font-extrabold text-gray-900">لوحة التحكم</h2>
+        <p className="text-gray-500 font-medium">أدخل الرمز السري للوصول</p>
       </div>
-      <h2 className="text-2xl font-black text-gray-900 mb-6">لوحة التحكم</h2>
-      <Card className={`w-full max-w-sm border-0 shadow-2xl rounded-3xl ${error ? "ring-2 ring-red-500" : ""}`}>
-        <CardContent className="p-8 space-y-6">
-          <input 
-            ref={inputRef} type="password" inputMode="numeric" maxLength={8} 
-            value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, ""))} 
-            onKeyDown={e => e.key === "Enter" && check()} 
-            placeholder="● ● ● ●" 
-            className="w-full text-center text-3xl tracking-[0.5em] h-16 rounded-2xl border-2 border-gray-100 focus:border-primary outline-none bg-gray-50 font-bold" 
-          />
-          <Button onClick={check} className="w-full h-14 rounded-2xl font-bold text-lg">دخول النظام</Button>
+      <Card className={`w-full max-w-sm border-0 shadow-xl rounded-3xl ${error ? "ring-2 ring-red-400" : ""}`}>
+        <CardContent className="p-8 flex flex-col gap-5">
+          <input ref={inputRef} type="password" inputMode="numeric" maxLength={8} value={pin}
+            onChange={e => setPin(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={e => e.key === "Enter" && check()}
+            placeholder="● ● ● ●"
+            className="w-full text-center text-3xl tracking-[0.5em] h-16 rounded-2xl border-2 border-gray-200 focus:border-primary focus:outline-none bg-gray-50 font-bold" />
+          {error && <p className="text-center text-red-500 font-bold text-sm">❌ الرمز غير صحيح</p>}
+          <Button onClick={check} className="w-full h-12 rounded-xl font-bold text-base">دخول</Button>
         </CardContent>
       </Card>
     </div>
   );
 }
 
-/* ═══ نافذة السند ═══ */
+/* ═══ RECEIPT MODAL ═══ */
 function ReceiptModal({ src, onClose }: { src: string; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={onClose} dir="rtl">
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-          <p className="font-bold flex items-center gap-2 text-blue-700">
-            <ImageIcon className="w-5 h-5"/> صورة السند
-          </p>
-          <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-lg">✕</button>
+        <div className="flex items-center justify-between p-4 border-b">
+          <p className="font-bold text-gray-900">سند التحويل</p>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 font-bold text-xl">✕</button>
         </div>
-        <div className="p-4 bg-gray-100 flex items-center justify-center">
-          <img src={src} alt="سند" className="max-w-full max-h-[70vh] rounded-xl shadow-lg border-2 border-white" />
-        </div>
+        <img src={src} alt="سند التحويل" className="w-full max-h-[70vh] object-contain p-4" />
       </div>
     </div>
   );
 }
 
-/* ═══ كرت الطلب بدون خريطة ═══ */
-function OrderCard({ order, drivers, onAssign, onChangeStatus, onVerifyPayment, onWhatsApp, onChangeNotes }: any) {
+/* ═══ ORDER CARD ═══ */
+function OrderCard({
+  order, phones, drivers, settings, isDriversLoading,
+  onAssign, onChangeStatus, onVerifyPayment, onWhatsApp,
+}: {
+  order: Order;
+  phones: ReturnType<typeof usePhones>["data"];
+  drivers: ReturnType<typeof useDrivers>["data"];
+  settings: SiteSettings | undefined;
+  isDriversLoading: boolean;
+  onAssign: (order: Order, driver: NonNullable<ReturnType<typeof useDrivers>["data"]>[number] | null) => void;
+  onChangeStatus: (id: number, status: string) => void;
+  onVerifyPayment: (id: number, verified: boolean) => void;
+  onWhatsApp: (order: Order) => void;
+}) {
+  const [showDrivers, setShowDrivers] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [showMsgInput, setShowMsgInput] = useState(false);
-  const [msgText, setMsgText] = useState("");
-  
-  const [optStatus, setOptStatus] = useState(order.status);
-  const [optDriver, setOptDriver] = useState(order.assignedDriverName);
-  const [optVerified, setOptVerified] = useState(order.paymentVerified);
-
-  useEffect(() => { setOptStatus(order.status); }, [order.status]);
-  useEffect(() => { setOptDriver(order.assignedDriverName); }, [order.assignedDriverName]);
-  useEffect(() => { setOptVerified(order.paymentVerified); }, [order.paymentVerified]);
-
-  const st = STATUS_MAP[optStatus] || STATUS_MAP.pending;
-  const isReceiptImage = order.paymentReceiptImage && order.paymentReceiptImage.startsWith('data:image');
-  const receiptText = order.paymentReceiptImage && !isReceiptImage ? order.paymentReceiptImage : null;
-
-  const handleFastStatus = (key: string) => { 
-    setShowStatus(false); 
-    setOptStatus(key); 
-    onChangeStatus(order.id, key); 
-  };
-  
-  const handleFastAssign = (d: any) => { 
-    setOptDriver(d ? d.name : null); 
-    setOptStatus(d ? "assigned" : "pending"); 
-    onAssign(order, d); 
-  };
-
-  const handleFastVerify = (verified: boolean) => {
-    setOptVerified(verified); 
-    setOptStatus(verified ? "delivering" : "pending");
-    onVerifyPayment(order.id, verified);
-  };
-
-  const handleSendMsg = () => {
-    if (!msgText.trim()) return;
-    let notesArr = [];
-    try {
-      notesArr = JSON.parse(order.notes || "[]");
-      if (!Array.isArray(notesArr)) notesArr = [];
-    } catch {
-      notesArr = order.notes ? [{text: order.notes, time: new Date().toISOString()}] : [];
-    }
-    notesArr.push({ text: msgText, time: new Date().toISOString(), isCustom: true });
-    onChangeNotes(order.id, JSON.stringify(notesArr));
-    setMsgText("");
-    setShowMsgInput(false);
-  };
+  const st = STATUS_MAP[order.status] || STATUS_MAP.pending;
 
   return (
     <>
-      {showReceipt && isReceiptImage && <ReceiptModal src={order.paymentReceiptImage!} onClose={() => setShowReceipt(false)} />}
-      <Card className="border border-border/50 shadow-md hover:shadow-xl transition-all rounded-[2rem] overflow-hidden relative">
-        
-        <div className={`h-1.5 w-full ${order.paymentMethod === "bank_transfer" ? "bg-blue-600" : "bg-primary"}`}></div>
-        
+      {showReceipt && order.paymentReceiptImage && (
+        <ReceiptModal src={order.paymentReceiptImage?.includes(" - ") ? order.paymentReceiptImage.split(" - ")[0] : "البنك"} onClose={() => setShowReceipt(false)} />
+      )}
+      <Card className="border border-border/50 shadow-md hover:shadow-xl transition-all rounded-2xl overflow-hidden">
+        <div className={`h-1.5 w-full ${order.paymentMethod === "bank_transfer" ? "bg-gradient-to-r from-blue-400 to-blue-600" : "bg-gradient-to-r from-primary to-orange-400"}`}></div>
         <CardContent className="p-5 space-y-4">
-          <div className="flex justify-between items-start">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2">
             <div>
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-xs font-bold text-gray-400">#{order.id}</span>
-                <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase ${st.color}`}>{st.label}</span>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${st.color}`}>{st.label}</span>
+                {order.paymentMethod === "bank_transfer" && (
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${order.paymentVerified ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+                    {order.paymentVerified ? "✓ سند مقبول" : "🔄 تحويل مصرفي"}
+                  </span>
+                )}
               </div>
-              <p className="font-black flex items-center gap-1.5 text-gray-900 leading-tight">
-                <User className="w-4 h-4 text-primary" /> {order.customerName}
+              <p className="font-bold text-gray-900 flex items-center gap-1.5"><User className="w-4 h-4 text-primary" /> {order.customerName}</p>
+              <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5" dir="ltr">
+                <PhoneIcon className="w-3.5 h-3.5 text-primary" /> {order.customerPhone}
               </p>
-              <p className="text-xs font-bold text-gray-500 mt-1" dir="ltr">{order.customerPhone}</p>
             </div>
-            <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1 shrink-0">
+            <span className="text-xs text-gray-400 flex items-center gap-1 shrink-0">
               <Clock className="w-3 h-3" /> {format(new Date(order.createdAt), 'hh:mm a', { locale: ar })}
             </span>
           </div>
 
-          <div className="flex flex-col gap-2 pt-1">
-            <div className="text-xs font-bold text-gray-600 bg-gray-50 p-3 rounded-2xl border border-gray-100 flex gap-2">
-              <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <span>{order.address}</span>
-            </div>
-            {order.locationLink && (
-              <a href={order.locationLink} target="_blank" rel="noopener noreferrer" 
-                 className="flex items-center justify-center gap-2 text-xs text-blue-600 bg-blue-50 py-3 rounded-2xl border border-blue-100 font-black hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                <ExternalLink className="w-4 h-4" /> فتح موقع الزبون (GPS)
-              </a>
-            )}
+          {/* Order details */}
+          <div className="bg-orange-50/60 p-3 rounded-xl">
+            <p className="text-xs font-bold text-orange-600 mb-1 flex items-center gap-1"><Package className="w-6 h-6 text-orange-600 inline-block ml-1" /> تفاصيل الطلب</p>
+            <p className="text-sm font-semibold text-gray-800">{order.orderDetails}</p>
           </div>
 
-          <div className="bg-orange-50/60 p-3 rounded-2xl border border-orange-100">
-            <p className="text-[10px] font-black text-orange-600 mb-1 flex items-center gap-1">
-              <Package className="w-4 h-4"/> تفاصيل الطلب:
-            </p>
-            <p className="text-xs font-bold text-gray-800 leading-relaxed">{order.orderDetails}</p>
+          {/* Address + GPS */}
+          <div className="flex items-start gap-2 text-sm text-gray-600">
+            <MapPin className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+            <span className="font-medium flex-1">{order.address}</span>
           </div>
+          {order.locationLink && (
+            <a href={order.locationLink} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-bold bg-blue-50 px-3 py-1.5 rounded-lg">
+              <ExternalLink className="w-3.5 h-3.5" /> فتح الموقع في خرائط قوقل
+            </a>
+          )}
 
-          {order.paymentMethod === "bank_transfer" && (
-            <div className={`p-3 rounded-2xl border ${optVerified ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}`}>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-black text-gray-700 flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-blue-600" /> الدفع المصرفي
-                </p>
-                {!optVerified ? (
-                  <button onClick={() => handleFastVerify(true)} className="text-[10px] bg-green-600 text-white px-3 py-1.5 rounded-lg font-black shadow-sm">قبول</button>
-                ) : (
-                  <button onClick={() => handleFastVerify(false)} className="text-[10px] bg-white text-red-600 border border-red-200 px-3 py-1.5 rounded-lg font-black">إلغاء</button>
-                )}
-              </div>
-              
-              {isReceiptImage ? (
-                <button onClick={() => setShowReceipt(true)} className="w-full flex items-center justify-center gap-2 bg-white text-blue-700 border border-blue-200 py-2.5 rounded-xl text-xs font-black shadow-sm hover:bg-blue-50 transition-colors">
-                  <Eye className="w-4 h-4" /> عرض صورة السند
-                </button>
-              ) : receiptText ? (
-                <div className="p-2.5 bg-white rounded-xl text-center font-black text-blue-900 border border-blue-100 text-xs shadow-sm">
-                  رقم الحوالة: {receiptText}
-                </div>
-              ) : (
-                <p className="text-[10px] text-gray-400 text-center italic mt-1">لم يتم إرفاق سند</p>
+          {/* Delivery area */}
+          {order.deliveryArea && (
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="font-bold text-gray-700">المنطقة: {order.deliveryArea}</span>
+              {order.deliveryAreaPrice !== null && order.deliveryAreaPrice !== undefined && (
+                <span className="text-xs bg-orange-100 text-orange-700 font-bold px-2 py-0.5 rounded-lg">
+                  {order.deliveryAreaPrice > 0 ? `${order.deliveryAreaPrice.toLocaleString()} ريال` : "مجاناً"}
+                </span>
               )}
             </div>
           )}
 
-          <div className="pt-2 border-t border-gray-100">
-            {optDriver ? (
-              <div className="flex items-center justify-between bg-gray-50 border p-2.5 rounded-2xl shadow-sm">
-                <div className="text-xs font-black flex items-center gap-2 text-gray-700">
-                  <Truck className="w-4 h-4 text-primary" /> {optDriver}
+          {/* Notes */}
+          {order.notes && (
+            <div className="flex items-start gap-2 text-sm text-gray-500 bg-gray-50 p-2.5 rounded-xl">
+              <FileText className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
+              <span>{order.notes}</span>
+            </div>
+          )}
+
+          {/* Payment receipt */}
+          {order.paymentMethod === "bank_transfer" && (
+            <div className={`p-3 rounded-xl border ${order.paymentVerified ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-blue-600" /> سند تحويل مصرفي
+                </p>
+                <div className="flex items-center gap-2">
+                  {order.paymentReceiptImage && (
+                    <div className="w-full mt-2 space-y-1">
+                      <div className="px-3 py-1 bg-blue-600 text-white rounded-t-xl font-bold text-xs">
+                        البنك: {order.paymentReceiptImage?.includes(" - ") ? order.paymentReceiptImage.split(" - ")[0] : "البنك"}
+                      </div>
+                      <div className="px-3 py-2 bg-blue-50 text-blue-900 rounded-b-xl font-bold border border-blue-200">
+                        رقم الحوالة: <span className="text-lg font-black tracking-widest mr-2">
+                          {order.paymentReceiptImage?.includes(" - ") ? order.paymentReceiptImage.split(" - ")[1] : order.paymentReceiptImage}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {!order.paymentVerified ? (
+                    <button onClick={() => onVerifyPayment(order.id, true)}
+                      className="flex items-center gap-1 text-xs text-white bg-green-500 hover:bg-green-600 font-bold px-2 py-1 rounded-lg">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> قبول
+                    </button>
+                  ) : (
+                    <button onClick={() => onVerifyPayment(order.id, false)}
+                      className="flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-bold bg-white border border-red-200 px-2 py-1 rounded-lg">
+                      <XCircle className="w-3.5 h-3.5" /> إلغاء التحقق
+                    </button>
+                  )}
                 </div>
-                <button onClick={() => handleFastAssign(null)} className="text-[10px] text-red-500 font-black hover:bg-red-50 px-2 py-1 rounded-lg transition-colors">إلغاء</button>
+              </div>
+              {!order.paymentReceiptImage && <p className="text-xs text-gray-500 mt-1">لم يقم الزبون بإدخال رقم الحوالة</p>}
+            </div>
+          )}
+
+          {/* Driver assignment */}
+          <div className="pt-1">
+            {order.assignedDriverName ? (
+              <div className="flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-bold text-blue-700">{order.assignedDriverName}</span>
+                </div>
+                <button onClick={() => onAssign(order, null)} className="text-xs text-red-400 hover:text-red-600 font-bold">إلغاء</button>
               </div>
             ) : (
-              <div className="overflow-x-auto flex gap-2 pb-1 no-scrollbar">
-                {Array.isArray(drivers) && drivers.map((d: any) => (
-                  <button key={d.id} onClick={() => handleFastAssign(d)} className="flex-shrink-0 snap-start px-4 py-2.5 border-2 border-dashed border-gray-200 rounded-2xl text-[10px] font-black text-gray-500 hover:border-primary hover:text-primary hover:bg-orange-50 transition-all">
-                    {d.name}
-                  </button>
-                ))}
-              </div>
+              <div className="w-full mt-2">
+                    <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
+                      <Truck className="w-3.5 h-3.5" /> مرر لاختيار سائق:
+                    </p>
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 snap-x [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                      {isDriversLoading ? <p className="text-sm text-gray-500 whitespace-nowrap">جاري التحميل...</p>
+                        : drivers?.length === 0 ? <p className="text-sm text-gray-500 whitespace-nowrap">لا يوجد سائقون</p>
+                        : drivers?.map(d => (
+                          <button key={d.id} onClick={() => onAssign(order, d)}
+                            className="flex-shrink-0 snap-start px-4 py-2 bg-white border-2 border-dashed border-blue-200 rounded-xl hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all text-sm font-bold flex flex-col items-center gap-1 text-gray-700">
+                            <span className="flex items-center gap-1.5"><Truck className="w-4 h-4" /> {d.name}</span>
+                            {d.phone && <span className="text-gray-400 font-normal text-xs" dir="ltr">{d.phone}</span>}
+                          </button>
+                      ))}
+                    </div>
+                  </div>
             )}
           </div>
 
-          <div className="flex gap-2">
+          {/* Actions row */}
+          <div className="flex items-center gap-2 pt-1">
             <div className="relative flex-1">
-              <button onClick={() => setShowStatus(!showStatus)} className="w-full flex justify-between items-center p-3 text-[10px] font-black border rounded-2xl bg-white hover:border-primary transition-all">
-                <span>تغيير الحالة</span><ChevronDown className="w-3 h-3 text-gray-400" />
+              <button onClick={() => setShowStatus(v => !v)}
+                className="w-full flex items-center justify-between gap-1 px-3 py-2 text-xs font-bold border border-gray-200 rounded-xl hover:border-primary transition-colors">
+                <span>الحالة</span><ChevronDown className="w-3 h-3" />
               </button>
               {showStatus && (
-                <div className="absolute z-10 bottom-full w-full bg-white border border-gray-200 rounded-2xl shadow-2xl mb-2 overflow-hidden">
+                <div className="absolute z-10 bottom-full mb-1 right-0 left-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
                   {Object.entries(STATUS_MAP).map(([key, val]) => (
-                    <button key={key} onClick={() => handleFastStatus(key)} className="w-full text-right p-3 text-[10px] font-black hover:bg-gray-50 border-b border-gray-50 last:border-0">
-                      <span className={`px-2 py-1 rounded-lg ${val.color} block w-fit`}>{val.label}</span>
+                    <button key={key} onClick={() => { onChangeStatus(order.id, key); setShowStatus(false); }}
+                      className="w-full text-right px-3 py-2 text-xs font-bold hover:bg-gray-50 flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-lg ${val.color}`}>{val.label}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            <button onClick={() => setShowMsgInput(!showMsgInput)} className={`p-3 border rounded-2xl transition-all shadow-sm ${showMsgInput ? 'bg-red-600 text-white border-red-600' : 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'}`}>
-              <Bell className="w-5 h-5" />
+            <button onClick={() => onWhatsApp(order)}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-green-50 text-green-700 border border-green-200 rounded-xl hover:bg-green-100 transition-colors">
+              <MessageCircle className="w-4 h-4" /> واتساب
             </button>
-            <button onClick={() => onWhatsApp(order)} className="p-3 bg-green-50 text-green-700 border border-green-200 rounded-2xl hover:bg-green-100 transition-all shadow-sm shadow-green-600/10">
-              <MessageCircle className="w-5 h-5" />
-            </button>
+            {order.status === "delivered" && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
+            {order.status === "cancelled" && <XCircle className="w-5 h-5 text-red-400 shrink-0" />}
           </div>
 
-          {/* صندوق كتابة الإشعار */}
-          {showMsgInput && (
-            <div className="p-3 bg-red-50/50 rounded-2xl border border-red-100 flex gap-2 animate-in fade-in zoom-in duration-200">
-              <Input value={msgText} onChange={e => setMsgText(e.target.value)} placeholder="اكتب إشعار للعميل هنا..." className="h-10 text-xs font-bold border-red-200 focus:border-red-400 bg-white" />
-              <Button onClick={handleSendMsg} className="h-10 px-4 bg-red-600 hover:bg-red-700 text-xs font-black shadow-md"><Send className="w-4 h-4 rtl:-scale-x-100" /></Button>
-            </div>
-          )}
+          <p className="text-xs text-gray-400">{format(new Date(order.createdAt), 'yyyy/MM/dd', { locale: ar })}</p>
         </CardContent>
       </Card>
     </>
   );
 }
 
+/* ═══ MAIN ADMIN ═══ */
 export default function Admin() {
   const { toast } = useToast();
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("admin_unlocked") === "1");
 
   const { data: orders, isLoading: isOrdersLoading } = useOrders();
   const { data: stats } = useOrderStats();
-  const { data: phones } = usePhones();
-  const { data: settings } = useSettings();
+  const { data: phones, isLoading: isPhonesLoading } = usePhones();
+  const { data: settings, isLoading: isSettingsLoading } = useSettings();
   const { data: drivers, isLoading: isDriversLoading } = useDrivers();
-  const { data: areas } = useDeliveryAreas();
+  const { data: areas, isLoading: isAreasLoading } = useDeliveryAreas();
 
   const addPhone = useAddPhone();
   const deletePhone = useDeletePhone();
@@ -303,311 +314,459 @@ export default function Admin() {
   const addArea = useAddDeliveryArea();
   const updateArea = useUpdateDeliveryArea();
   const deleteArea = useDeleteDeliveryArea();
+  const { data: cashiers, isLoading: isCashiersLoading } = useCashiers();
+  const addCashier = useAddCashier();
+  const deleteCashier = useDeleteCashier();
 
-  const phoneForm = useForm({ defaultValues: { phoneNumber: "", label: "" } });
-  const driverForm = useForm({ defaultValues: { name: "", phone: "" } });
-  const areaForm = useForm({ defaultValues: { name: "", price: 0 } });
-  
-  const settingsForm = useForm({
+  const phoneForm = useForm<z.infer<typeof phoneSchema>>({ resolver: zodResolver(phoneSchema), defaultValues: { phoneNumber: "", label: "" } });
+  const driverForm = useForm<z.infer<typeof driverSchema>>({ resolver: zodResolver(driverSchema), defaultValues: { name: "", phone: "" } });
+  const areaForm = useForm<z.infer<typeof areaSchema>>({ resolver: zodResolver(areaSchema), defaultValues: { name: "", price: 0 } });
+  const cashierForm = useForm<z.infer<typeof cashierSchema>>({ resolver: zodResolver(cashierSchema), defaultValues: { name: "", phone: "", notes: "" } });
+  const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: { 
-      siteName: "", siteTagline: "", heroTitle: "", heroTitleHighlight: "", 
-      heroDescription: "", availabilityText: "", formTitle: "", formSubtitle: "", 
-      successMessage: "", primaryColor: "#FF6B35", whatsappTemplate: "", 
-      footerText: "", adminPin: "", logoImage: "", bankName: "", 
+    defaultValues: {
+      siteName: "طلبك علينا", siteTagline: "أسرع خدمة توصيل",
+      heroTitle: "توصيل سريع،", heroTitleHighlight: "مضمون وموثوق",
+      heroDescription: "اطلب الآن وسنقوم بتوصيل طلبك بأسرع وقت ممكن.",
+      availabilityText: "متاحون الآن للخدمة",
+      formTitle: "سجل طلبك الآن", formSubtitle: "أدخل تفاصيل الطلب وسنتواصل معك فوراً",
+      successMessage: "تم استلام طلبك بنجاح، سيتواصل معك فريقنا قريباً!",
+      primaryColor: "#FF6B35",
+      whatsappTemplate: "🛵 *طلب توصيل جديد*\n👤 *الاسم:* {customerName}\n📞 *الهاتف:* {customerPhone}\n📍 *العنوان:* {address}\n📦 *الطلب:* {orderDetails}\n📝 *ملاحظات:* {notes}",
+      footerText: "حمزة محمد المروني للتواصل 775864948  .", adminPin: "1234", logoImage: "",
+      bankName: "بنك العملاقي", bankAccountName: "", bankAccountNumber: "",
     },
   });
 
-  useEffect(() => { 
-    if (settings) settingsForm.reset(settings as any); 
-  }, [settings]);
+  useEffect(() => { if (settings) settingsForm.reset(settings as z.infer<typeof settingsSchema>); }, [settings]);
 
-  if (!unlocked) {
-    return <PinLock correctPin={settings?.adminPin || "1234"} onUnlock={() => { sessionStorage.setItem("admin_unlocked", "1"); setUnlocked(true); }} />;
-  }
+  const handleUnlock = () => { sessionStorage.setItem("admin_unlocked", "1"); setUnlocked(true); };
 
-  const onAssign = async (order: Order, driver: any | null) => { 
-    try { await updateOrder.mutateAsync({ id: order.id, data: { assignedDriverId: driver?.id ?? null, assignedDriverName: driver?.name ?? null, status: driver ? "assigned" : "pending" } }); } 
-    catch { toast({ title: "خطأ", variant: "destructive" }); } 
+  if (!unlocked) return <PinLock correctPin={settings?.adminPin || "1234"} onUnlock={handleUnlock} />;
+
+  /* Handlers */
+  const onAddPhone = async (data: z.infer<typeof phoneSchema>) => {
+    try { await addPhone.mutateAsync({ data }); toast({ title: "تم إضافة الرقم" }); phoneForm.reset(); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
-  
-  const onChangeStatus = async (id: number, status: string) => { 
-    try { await updateOrder.mutateAsync({ id, data: { status } }); } 
-    catch { toast({ title: "خطأ", variant: "destructive" }); } 
+  const onAddDriver = async (data: z.infer<typeof driverSchema>) => {
+    try { await addDriver.mutateAsync(data); toast({ title: "تم إضافة السائق" }); driverForm.reset(); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
-  
-  const onVerifyPayment = async (id: number, verified: boolean) => { 
-    try { await updateOrder.mutateAsync({ id, data: { paymentVerified: verified, status: verified ? "delivering" : "pending" } }); } 
-    catch { toast({ title: "خطأ", variant: "destructive" }); } 
+  const onAddArea = async (data: z.infer<typeof areaSchema>) => {
+    try { await addArea.mutateAsync(data); toast({ title: "تم إضافة المنطقة" }); areaForm.reset(); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
 
-  const onChangeNotes = async (id: number, notes: string) => { 
-    try { await updateOrder.mutateAsync({ id, data: { notes } }); toast({ title: "تم إرسال الإشعار للعميل 📨" }); } 
-    catch {} 
+  const onAddCashier = async (data: z.infer<typeof cashierSchema>) => {
+    try { await addCashier.mutateAsync(data); toast({ title: "تم إضافة الصراف" }); cashierForm.reset(); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
+  };
+
+  const onDeleteCashier = async (id: number) => {
+    try { await deleteCashier.mutateAsync(id); toast({ title: "تم حذف الصراف" }); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
+  };
+
+  const onAssign = async (order: Order, driver: NonNullable<typeof drivers>[number] | null) => {
+    try {
+      await updateOrder.mutateAsync({ id: order.id, data: { assignedDriverId: driver?.id ?? null, assignedDriverName: driver?.name ?? null, status: driver ? "assigned" : "pending" } });
+      toast({ title: driver ? `تم تعيين ${driver.name}` : "تم إلغاء التعيين" });
+    } catch { toast({ title: "خطأ", variant: "destructive" }); }
+  };
+
+  const onChangeStatus = async (id: number, status: string) => {
+    try { await updateOrder.mutateAsync({ id, data: { status } }); toast({ title: "تم تحديث الحالة" }); }
+    catch { toast({ title: "خطأ", variant: "destructive" }); }
+  };
+
+  const onVerifyPayment = async (id: number, verified: boolean) => {
+    try {
+      await updateOrder.mutateAsync({ id, data: { paymentVerified: verified, status: verified ? "delivering" : "pending" } });
+      toast({ title: verified ? "✅ تم قبول السند وتغيير الحالة إلى جاري التوصيل" : "تم إلغاء التحقق" });
+    } catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
 
   const onWhatsApp = (order: Order) => {
-     const tpl = settings?.whatsappTemplate || "🛵 *طلب جديد #{id}*\n👤 {customerName}\n📍 {address}";
-     const text = tpl.replace("{id}", String(order.id))
-                     .replace("{customerName}", order.customerName)
-                     .replace("{customerPhone}", order.customerPhone)
-                     .replace("{address}", order.address)
-                     .replace("{orderDetails}", order.orderDetails);
-     window.open(`https://wa.me/${phones?.[0]?.phoneNumber?.replace(/\D/g, "") || "967775864948"}?text=${encodeURIComponent(text)}`, "_blank");
+    const tpl = settings?.whatsappTemplate || "🛵 *طلب #{id}*\n👤 {customerName}\n📞 {customerPhone}\n📍 {address}\n📦 {orderDetails}\n📝 {notes}";
+    let text = tpl
+      .replace("{id}", String(order.id))
+      .replace("{customerName}", order.customerName)
+      .replace("{customerPhone}", order.customerPhone)
+      .replace("{address}", order.address)
+      .replace("{orderDetails}", order.orderDetails)
+      .replace("{notes}", order.notes || "لا يوجد");
+    if (order.locationLink) text += `\n🗺️ الموقع: ${order.locationLink}`;
+    const encoded = encodeURIComponent(text);
+    const targetPhones = Array.isArray(phones) && phones.length > 0 ? (phones || []).map(p => p.phoneNumber) : ["967775864948"];
+    targetPhones.forEach((ph, i) => {
+      setTimeout(() => window.open(`https://wa.me/${ph.replace(/\D/g, "")}?text=${encoded}`, "_blank"), i * 200);
+    });
   };
 
   const onLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => settingsForm.setValue("logoImage", reader.result as string, { shouldDirty: true });
+    reader.onload = () => settingsForm.setValue("logoImage", reader.result as string);
     reader.readAsDataURL(file);
   };
 
+  const onSaveSettings = async (data: z.infer<typeof settingsSchema>) => {
+    try { await updateSettings.mutateAsync(data as SiteSettings); toast({ title: "✅ تم حفظ الإعدادات" }); }
+    catch { toast({ title: "خطأ في الحفظ", variant: "destructive" }); }
+  };
+
+  const pendingBank = orders?.filter(o => o.paymentMethod === "bank_transfer" && !o.paymentVerified && o.status !== "cancelled").length || 0;
+
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 pb-24" dir="rtl">
-      
-      <div className="flex justify-between items-center px-4">
+    <div className="w-full max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">لوحة التحكم</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900">لوحة التحكم</h1>
+          <p className="text-gray-500 font-medium mt-1">إدارة الطلبات، السائقين، المناطق، والإعدادات</p>
         </div>
-        <Button variant="ghost" onClick={() => { sessionStorage.removeItem("admin_unlocked"); setUnlocked(false); }} className="text-gray-400 hover:text-red-500 transition-colors">
-          <Lock className="w-5 h-5 ml-2" /> خروج
+        <Button variant="ghost" size="sm" className="text-gray-500 gap-2"
+          onClick={() => { sessionStorage.removeItem("admin_unlocked"); setUnlocked(false); }}>
+          <Lock className="w-4 h-4" /> قفل
         </Button>
       </div>
 
+      {/* Stats Bar */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
-           {[
-             { label: "اليوم", val: stats.today, c: "bg-orange-50 text-orange-600", i: <Calendar className="w-4 h-4"/> }, 
-             { label: "الشهر", val: stats.thisMonth, c: "bg-blue-50 text-blue-600", i: <TrendingUp className="w-4 h-4"/> }, 
-             { label: "السنة", val: stats.thisYear, c: "bg-purple-50 text-purple-600", i: <BarChart3 className="w-4 h-4"/> }, 
-             { label: "الإجمالي", val: stats.total, c: "bg-green-50 text-green-600", i: <Package className="w-4 h-4"/> }
-           ].map(s => (
-             <div key={s.label} className="bg-white p-5 rounded-3xl border border-gray-100 flex items-center gap-4 transition-transform hover:scale-[1.02] shadow-sm">
-               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl ${s.c}`}>
-                 {s.val}
-               </div>
-               <div>
-                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">{s.i} {s.label}</p>
-                 <p className="text-lg font-black text-gray-900">{s.val}</p>
-               </div>
-             </div>
-           ))}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { icon: <Calendar className="w-5 h-5" />, label: "اليوم", value: stats.today, color: "text-orange-600 bg-orange-50" },
+            { icon: <TrendingUp className="w-5 h-5" />, label: "هذا الشهر", value: stats.thisMonth, color: "text-blue-600 bg-blue-50" },
+            { icon: <BarChart3 className="w-5 h-5" />, label: "هذه السنة", value: stats.thisYear, color: "text-purple-600 bg-purple-50" },
+            { icon: <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />, label: "الإجمالي", value: stats.total, color: "text-green-600 bg-green-50" },
+          ].map(stat => (
+            <Card key={stat.label} className="border-0 shadow-md rounded-2xl">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>{stat.icon}</div>
+                <div>
+                  <p className="text-xs font-bold text-gray-500">{stat.label}</p>
+                  <p className="text-2xl font-extrabold text-gray-900">{stat.value}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
-      {/* ─── التبويبات الرئيسية ─── */}
-      <Tabs defaultValue="orders" dir="rtl" className="w-full">
-        <div className="px-4">
-          <TabsList className="w-full grid grid-cols-5 h-auto bg-gray-100/50 border border-gray-200 p-1.5 rounded-[2rem] shadow-inner mb-8 overflow-hidden">
-            <TabsTrigger value="orders" className="font-black text-[10px] py-4 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center justify-center gap-2"><Package className="w-4 h-4"/> الطلبات</TabsTrigger>
-            <TabsTrigger value="drivers" className="font-black text-[10px] py-4 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center justify-center gap-2"><Truck className="w-4 h-4"/> السائقون</TabsTrigger>
-            <TabsTrigger value="areas" className="font-black text-[10px] py-4 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center justify-center gap-2"><MapPin className="w-4 h-4"/> المناطق</TabsTrigger>
-            <TabsTrigger value="phones" className="font-black text-[10px] py-4 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center justify-center gap-2"><PhoneIcon className="w-4 h-4"/> واتساب</TabsTrigger>
-            <TabsTrigger value="settings" className="font-black text-[10px] py-4 rounded-[1.5rem] data-[state=active]:bg-primary data-[state=active]:text-white transition-all flex items-center justify-center gap-2"><Settings className="w-4 h-4"/> الإعدادات</TabsTrigger>
-          </TabsList>
+      {/* Status breakdown */}
+      {stats && Object.keys(stats.byStatus).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(STATUS_MAP).map(([key, val]) => {
+            const count = stats.byStatus[key] || 0;
+            if (!count) return null;
+            return (
+              <span key={key} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${val.color}`}>
+                {val.label}: {count}
+              </span>
+            );
+          })}
+          {pendingBank > 0 && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-100 text-blue-700">
+              <CreditCard className="w-3.5 h-3.5" /> سنوتات بانتظار التحقق: {pendingBank}
+            </span>
+          )}
         </div>
+      )}
 
-        {/* ─── قسم الطلبات ─── */}
-        <TabsContent value="orders" className="px-4">
+      <Tabs defaultValue="orders" dir="rtl">
+        <TabsList className="w-full grid grid-cols-5 h-14 bg-gray-100 p-1 rounded-xl mb-8">
+          {[
+            { value: "orders",  icon: <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />, label: "الطلبات" },
+            { value: "drivers", icon: <Truck className="w-4 h-4" />, label: "السائقون" },
+            { value: "areas",   icon: <MapPin className="w-4 h-4" />, label: "المناطق" },
+            { value: "phones",  icon: <PhoneIcon className="w-4 h-4" />, label: "واتساب" },
+            { value: "settings",icon: <Settings className="w-4 h-4" />, label: "الإعدادات" },
+          ].map(t => (
+            <TabsTrigger key={t.value} value={t.value}
+              className="rounded-lg font-bold text-xs sm:text-sm gap-1 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm">
+              {t.icon} <span className="hidden sm:inline">{t.label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {/* ── ORDERS ── */}
+        <TabsContent value="orders" className="space-y-6">
           {isOrdersLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6"><Skeleton className="h-72 rounded-[2rem]"/></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{[1,2,3,4].map(i => <Skeleton key={i} className="h-72 rounded-2xl" />)}</div>
+          ) : orders?.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl">
+              <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />
+              <h3 className="text-xl font-bold text-gray-500">لا يوجد طلبات بعد</h3>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {orders?.map(o => <OrderCard key={o.id} order={o} drivers={drivers} onAssign={onAssign} onChangeStatus={onChangeStatus} onVerifyPayment={onVerifyPayment} onWhatsApp={onWhatsApp} onChangeNotes={onChangeNotes} />)}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {orders?.map(order => (
+                <OrderCard key={order.id} order={order} phones={phones} drivers={drivers}
+                  settings={settings} isDriversLoading={isDriversLoading}
+                  onAssign={onAssign} onChangeStatus={onChangeStatus}
+                  onVerifyPayment={onVerifyPayment} onWhatsApp={onWhatsApp} />
+              ))}
             </div>
           )}
         </TabsContent>
 
-        {/* ─── قسم السائقين ─── */}
-        <TabsContent value="drivers" className="space-y-6 px-4">
-          <Card className="rounded-[2rem] border-0 shadow-sm overflow-hidden">
-            <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-sm font-black flex items-center gap-2 text-primary"><Plus className="w-4 h-4"/> إضافة سائق جديد</CardTitle></CardHeader>
+        {/* ── DRIVERS ── */}
+        <TabsContent value="drivers" className="space-y-8">
+          <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5 text-primary" /> إضافة سائق جديد</CardTitle></CardHeader>
             <CardContent className="pt-6">
               <Form {...driverForm}>
-                <form onSubmit={driverForm.handleSubmit((d) => addDriver.mutate(d))} className="flex gap-4">
-                  <FormField control={driverForm.control} name="name" render={({field})=>(<Input placeholder="اسم السائق" className="h-14 rounded-2xl border-gray-200" {...field}/>)}/>
-                  <Button type="submit" disabled={addDriver.isPending} className="h-14 px-10 rounded-2xl font-black">إضافة</Button>
+                <form onSubmit={driverForm.handleSubmit(onAddDriver)} className="flex flex-col sm:flex-row gap-4">
+                  <FormField control={driverForm.control} name="name" render={({ field }) => (
+                    <FormItem className="flex-1"><FormControl><Input placeholder="اسم السائق" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={driverForm.control} name="phone" render={({ field }) => (
+                    <FormItem className="flex-1"><FormControl><Input placeholder="رقم الهاتف (اختياري)" dir="ltr" className="h-12 rounded-xl text-right" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <Button type="submit" disabled={addDriver.isPending} className="h-12 px-8 rounded-xl font-bold">إضافة</Button>
                 </form>
               </Form>
             </CardContent>
           </Card>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {drivers?.map(d => (
-              <div key={d.id} className="bg-white p-5 rounded-[1.5rem] border border-gray-100 flex justify-between items-center shadow-sm hover:shadow-md transition-all">
-                 <div className="flex items-center gap-4">
-                   <div className={`w-3 h-3 rounded-full ${d.isAvailable !== false ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] animate-pulse' : 'bg-red-500'}`}></div>
-                   <div>
-                     <p className="font-black text-gray-900 leading-none">{d.name}</p>
-                     <p className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg mt-2 w-fit border border-blue-100 tracking-widest">كود الدخول: {d.loginCode}</p>
-                   </div>
-                 </div>
-                 <Button variant="ghost" onClick={() => { if(confirm("حذف؟")) deleteDriver.mutate(d.id) }} className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"><Trash2 className="w-5 h-5"/></Button>
-              </div>
-            ))}
+            {isDriversLoading ? [1,2].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />) :
+              drivers?.length === 0 ? <p className="text-gray-500 col-span-2 text-center py-8">لا يوجد سائقون بعد</p> :
+              drivers?.map(driver => (
+                <div key={driver.id} className="flex items-center justify-between p-5 bg-white border border-border/50 rounded-2xl shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center"><Truck className="w-6 h-6" /></div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg">{driver.name}</p>
+                      {driver.phone && <p className="text-sm text-gray-500" dir="ltr">{driver.phone}</p>}
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("حذف هذا السائق؟")) deleteDriver.mutateAsync(driver.id); }}
+                    className="text-red-500 hover:bg-red-50 h-10 w-10 rounded-xl"><Trash2 className="w-5 h-5" /></Button>
+                </div>
+              ))
+            }
           </div>
         </TabsContent>
 
-        {/* ─── قسم المناطق ─── */}
-        <TabsContent value="areas" className="space-y-6 px-4">
-          <Card className="rounded-[2rem] border-0 shadow-sm overflow-hidden">
-            <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-sm font-black flex items-center gap-2 text-primary"><Plus className="w-4 h-4"/> إضافة منطقة توصيل</CardTitle></CardHeader>
-             <CardContent className="pt-6">
-               <Form {...areaForm}>
-                 <form onSubmit={areaForm.handleSubmit((d) => addArea.mutate(d))} className="flex gap-4">
-                   <FormField control={areaForm.control} name="name" render={({field})=>(<Input placeholder="اسم المنطقة" className="h-14 rounded-2xl flex-1" {...field}/>)}/>
-                   <FormField control={areaForm.control} name="price" render={({field})=>(<Input type="number" placeholder="السعر" className="h-14 rounded-2xl w-32" {...field}/>)}/>
-                   <Button type="submit" className="h-14 px-10 rounded-2xl font-black">إضافة</Button>
-                 </form>
-               </Form>
-             </CardContent>
+        {/* ── AREAS ── */}
+        <TabsContent value="areas" className="space-y-8">
+          <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5 text-primary" /> إضافة منطقة توصيل</CardTitle></CardHeader>
+            <CardContent className="pt-6">
+              <Form {...areaForm}>
+                <form onSubmit={areaForm.handleSubmit(onAddArea)} className="flex flex-col sm:flex-row gap-4">
+                  <FormField control={areaForm.control} name="name" render={({ field }) => (
+                    <FormItem className="flex-1"><FormControl><Input placeholder="اسم المنطقة (مثال: سيئون، المدينة الجديدة)" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={areaForm.control} name="price" render={({ field }) => (
+                    <FormItem className="w-40">
+                      <FormControl><Input type="number" min="0" placeholder="السعر (ريال)" className="h-12 rounded-xl" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <Button type="submit" disabled={addArea.isPending} className="h-12 px-8 rounded-xl font-bold">إضافة</Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> المناطق ({areas?.length ?? 0})</h3>
+            {isAreasLoading ? [1,2].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />) :
+              areas?.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                  <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">لا يوجد مناطق مضافة بعد</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {areas?.map(area => (
+                    <div key={area.id} className={`flex items-center justify-between p-4 border rounded-2xl shadow-sm transition-all ${area.isActive ? "bg-white border-border/50" : "bg-gray-50 border-gray-200 opacity-60"}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${area.isActive ? "bg-primary/10 text-primary" : "bg-gray-200 text-gray-400"}`}>
+                          <MapPin className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">{area.name}</p>
+                          <p className="text-sm font-bold text-primary">{area.price > 0 ? `${area.price.toLocaleString()} ريال` : "مجاناً"}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => updateArea.mutateAsync({ id: area.id, isActive: !area.isActive })}
+                          className={`text-xs font-bold flex items-center gap-1 px-2 py-1.5 rounded-lg border transition-colors ${area.isActive ? "text-green-700 bg-green-50 border-green-200" : "text-gray-500 bg-gray-100 border-gray-200"}`}>
+                          {area.isActive ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                          {area.isActive ? "نشط" : "مخفي"}
+                        </button>
+                        <Button variant="ghost" size="icon"
+                          onClick={() => { if (confirm("حذف هذه المنطقة؟")) deleteArea.mutateAsync(area.id); }}
+                          className="text-red-500 hover:bg-red-50 h-9 w-9 rounded-xl"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
+          </div>
+        </TabsContent>
+
+        {/* ── PHONES ── */}
+        <TabsContent value="phones" className="space-y-8">
+          <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+            <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5 text-primary" /> إضافة رقم واتساب</CardTitle></CardHeader>
+            <CardContent className="pt-6">
+              <Form {...phoneForm}>
+                <form onSubmit={phoneForm.handleSubmit(onAddPhone)} className="flex flex-col sm:flex-row gap-4">
+                  <FormField control={phoneForm.control} name="phoneNumber" render={({ field }) => (
+                    <FormItem className="flex-1"><FormControl><Input placeholder="رقم الهاتف (مثال: 967775864948)" dir="ltr" className="h-12 text-right rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={phoneForm.control} name="label" render={({ field }) => (
+                    <FormItem className="flex-1"><FormControl><Input placeholder="وصف (اختياري)" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <Button type="submit" disabled={addPhone.isPending} className="h-12 px-8 rounded-xl font-bold">إضافة</Button>
+                </form>
+              </Form>
+            </CardContent>
           </Card>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {areas?.map(a => (
-              <div key={a.id} className={`p-5 rounded-[1.5rem] border flex justify-between items-center transition-all ${a.isActive ? 'bg-white border-gray-100 shadow-sm' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
-                 <div>
-                   <p className="font-black text-gray-900">{a.name}</p>
-                   <p className="text-sm text-primary font-black mt-0.5">{a.price} ريال</p>
-                 </div>
-                 <div className="flex gap-2">
-                    <button onClick={() => updateArea.mutate({id: a.id, isActive: !a.isActive})} className={`p-2.5 rounded-xl border transition-all ${a.isActive ? 'bg-green-50 text-green-600 border-green-200 shadow-sm' : 'bg-gray-200 text-gray-500 border-gray-300'}`}>
-                      {a.isActive ? <ToggleRight className="w-6 h-6"/> : <ToggleLeft className="w-6 h-6"/>}
-                    </button>
-                    <Button variant="ghost" onClick={() => deleteArea.mutate(a.id)} className="text-red-400 hover:text-red-600 h-11 w-11 rounded-xl"><Trash2 className="w-5 h-5"/></Button>
-                 </div>
-              </div>
-            ))}
+            {isPhonesLoading ? [1,2].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />) :
+              phones?.length === 0 ? <p className="text-gray-500 col-span-2 text-center py-8">لا يوجد أرقام مضافة</p> :
+              (Array.isArray(phones) ? phones : []).map(phone => (
+                <div key={phone.id} className="flex items-center justify-between p-5 bg-white border border-border/50 rounded-2xl shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center"><PhoneIcon className="w-6 h-6" /></div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-lg" dir="ltr">{phone.phoneNumber}</p>
+                      {phone.label && <p className="text-sm font-medium text-gray-500">{phone.label}</p>}
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon"
+                    onClick={() => { if (confirm("حذف هذا الرقم؟")) deletePhone.mutateAsync({ id: phone.id }); }}
+                    className="text-red-500 hover:bg-red-50 h-10 w-10 rounded-xl"><Trash2 className="w-5 h-5" /></Button>
+                </div>
+              ))
+            }
           </div>
         </TabsContent>
 
-        {/* ─── قسم أرقام الواتساب ─── */}
-        <TabsContent value="phones" className="space-y-6 px-4">
-           <Card className="rounded-[2rem] border-0 shadow-sm overflow-hidden">
-             <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-sm font-black flex items-center gap-2 text-green-700"><MessageCircle className="w-4 h-4"/> أرقام واتساب الإدارة</CardTitle></CardHeader>
-              <CardContent className="pt-6">
-                <Form {...phoneForm}>
-                  <form onSubmit={phoneForm.handleSubmit((d) => addPhone.mutate({data: d}))} className="flex gap-4">
-                    <FormField control={phoneForm.control} name="phoneNumber" render={({field})=>(<Input placeholder="الرقم (مثال: 967...)" className="h-14 rounded-2xl flex-1 text-right font-bold" dir="ltr" {...field}/>)}/>
-                    <Button type="submit" className="h-14 px-10 rounded-2xl font-black bg-green-600 hover:bg-green-700">إضافة</Button>
-                  </form>
-                </Form>
-              </CardContent>
-           </Card>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {phones?.map(p => (
-                <div key={p.id} className="bg-white p-5 rounded-[1.5rem] border border-gray-100 flex justify-between items-center shadow-sm hover:border-green-200 transition-colors">
-                   <div className="font-black text-gray-900" dir="ltr">{p.phoneNumber}</div>
-                   <Button variant="ghost" onClick={() => deletePhone.mutate({id: p.id})} className="text-red-400 hover:text-red-600 h-11 w-11 rounded-xl"><Trash2 className="w-5 h-5"/></Button>
+        {/* ── SETTINGS ── */}
+        <TabsContent value="settings" className="space-y-6">
+          {isSettingsLoading ? <div className="space-y-4">{[1,2,3].map(i => <Skeleton key={i} className="h-16 rounded-xl" />)}</div> : (
+            <Form {...settingsForm}>
+              <form onSubmit={settingsForm.handleSubmit(onSaveSettings)} className="space-y-6">
+
+                {/* Logo + Branding */}
+                <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Package className="w-6 h-6 text-orange-600 inline-block ml-1" /> الهوية والشعار</CardTitle></CardHeader>
+                  <CardContent className="pt-6 space-y-5">
+                    <div className="flex items-center gap-5">
+                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-orange-400 text-white flex items-center justify-center shadow-lg overflow-hidden shrink-0">
+                        {settingsForm.watch("logoImage") ? <img src={settingsForm.watch("logoImage")} alt="logo" className="w-full h-full object-cover" /> : <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-bold text-gray-700 transition-colors">
+                          <ImageIcon className="w-4 h-4" /> رفع الشعار
+                          <input type="file" accept="image/*" className="hidden" onChange={onLogoUpload} />
+                        </label>
+                        {settingsForm.watch("logoImage") && <button type="button" onClick={() => settingsForm.setValue("logoImage", "")} className="text-xs text-red-500 font-bold text-right">✕ إزالة الشعار</button>}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <FormField control={settingsForm.control} name="siteName" render={({ field }) => (
+                        <FormItem><FormLabel className="font-bold">اسم الموقع</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={settingsForm.control} name="siteTagline" render={({ field }) => (
+                        <FormItem><FormLabel className="font-bold">الشعار الفرعي</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={settingsForm.control} name="footerText" render={({ field }) => (
+                        <FormItem className="sm:col-span-2"><FormLabel className="font-bold">نص الفوتر</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Bank + PIN + Color */}
+                <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Banknote className="w-5 h-5 text-primary" /> الدفع المصرفي والأمان</CardTitle></CardHeader>
+                  <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <FormField control={settingsForm.control} name="bankName" render={({ field }) => (
+                      <FormItem><FormLabel className="font-bold">اسم البنك</FormLabel><FormControl><Input placeholder="بنك العملاقي" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={settingsForm.control} name="bankAccountName" render={({ field }) => (
+                      <FormItem><FormLabel className="font-bold">اسم صاحب الحساب</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={settingsForm.control} name="bankAccountNumber" render={({ field }) => (
+                      <FormItem><FormLabel className="font-bold">رقم الحساب</FormLabel><FormControl><Input dir="ltr" className="h-12 rounded-xl text-right" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={settingsForm.control} name="adminPin" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-bold flex items-center gap-2"><Lock className="w-4 h-4" /> الرمز السري للإدارة</FormLabel>
+                        <FormControl><Input type="text" inputMode="numeric" placeholder="1234" className="h-12 rounded-xl tracking-widest text-center font-bold" maxLength={8} {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={settingsForm.control} name="primaryColor" render={({ field }) => (
+                      <FormItem className="sm:col-span-2">
+                        <FormLabel className="font-bold">اللون الأساسي</FormLabel>
+                        <div className="flex items-center gap-3 mt-1">
+                          <input type="color" value={field.value} onChange={field.onChange} className="w-14 h-12 rounded-xl cursor-pointer border border-gray-200 p-1" />
+                          <FormControl><Input className="h-12 rounded-xl flex-1" {...field} /></FormControl>
+                          <div className="w-12 h-12 rounded-xl border border-gray-200" style={{ backgroundColor: field.value }} />
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </CardContent>
+                </Card>
+
+                {/* Hero */}
+                <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Settings className="w-5 h-5 text-primary" /> القسم الرئيسي</CardTitle></CardHeader>
+                  <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {[
+                      { name: "availabilityText" as const, label: "نص التوفر", col: "sm:col-span-2" },
+                      { name: "heroTitle" as const, label: "العنوان (السطر الأول)" },
+                      { name: "heroTitleHighlight" as const, label: "العنوان الملون (السطر الثاني)" },
+                      { name: "heroDescription" as const, label: "وصف الخدمة", col: "sm:col-span-2" },
+                      { name: "formTitle" as const, label: "عنوان النموذج" },
+                      { name: "formSubtitle" as const, label: "وصف النموذج" },
+                      { name: "successMessage" as const, label: "رسالة النجاح", col: "sm:col-span-2" },
+                    ].map(f => (
+                      <FormField key={f.name} control={settingsForm.control} name={f.name} render={({ field }) => (
+                        <FormItem className={f.col || ""}><FormLabel className="font-bold">{f.label}</FormLabel>
+                          <FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* WhatsApp template */}
+                <Card className="border-0 shadow-lg shadow-black/5 rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><MessageCircle className="w-5 h-5 text-green-600" /> قالب رسالة الواتساب</CardTitle></CardHeader>
+                  <CardContent className="pt-6">
+                    <FormField control={settingsForm.control} name="whatsappTemplate" render={({ field }) => (
+                      <FormItem>
+                        <FormDescription className="text-xs text-gray-500 leading-relaxed mb-2">
+                          المتغيرات: {["{id}", "{customerName}", "{customerPhone}", "{address}", "{orderDetails}", "{notes}"].map(v => (
+                            <code key={v} className="bg-gray-100 px-1.5 py-0.5 rounded text-xs ml-1">{v}</code>
+                          ))}
+                          <br /><em className="text-gray-400">رابط الموقع يُضاف تلقائياً إذا توفر</em>
+                        </FormDescription>
+                        <FormControl><Textarea className="rounded-xl resize-none font-mono text-sm" rows={7} {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-end pb-6">
+                  <Button type="submit" disabled={updateSettings.isPending}
+                    className="h-14 px-10 rounded-xl font-bold text-lg shadow-lg shadow-primary/30">
+                    {updateSettings.isPending ? <span className="flex items-center gap-2">جاري الحفظ... <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span></span>
+                      : <span className="flex items-center gap-2"><Save className="w-5 h-5" /> حفظ جميع الإعدادات</span>}
+                  </Button>
                 </div>
-              ))}
-           </div>
-        </TabsContent>
-
-        {/* ─── قسم الإعدادات الشاملة ─── */}
-        <TabsContent value="settings" className="space-y-8 px-4 pb-24">
-          <Form {...settingsForm}>
-            <form onSubmit={settingsForm.handleSubmit((d) => updateSettings.mutate(d as any))} className="space-y-8">
-            
-            {/* الهوية */}
-            <Card className="rounded-[2rem] border-0 shadow-xl overflow-hidden">
-               <CardHeader className="bg-gray-50 border-b"><CardTitle className="text-lg flex items-center gap-2 font-black text-primary"><Palette className="w-5 h-5"/> الهوية والبراند</CardTitle></CardHeader>
-               <CardContent className="p-8 space-y-8">
-                  <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="w-32 h-32 rounded-[2.5rem] bg-primary text-white flex items-center justify-center shadow-2xl overflow-hidden shrink-0 border-4 border-white">
-                      {settingsForm.watch("logoImage") ? <img src={settingsForm.watch("logoImage")} alt="logo" className="w-full h-full object-cover" /> : <Package className="w-12 h-12" />}
-                    </div>
-                    <div className="flex-1 space-y-4 text-center md:text-right">
-                      <p className="font-black text-gray-700">شعار التطبيق الرسمي</p>
-                      <label className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm font-black transition-all shadow-sm">
-                        <ImageIcon className="w-5 h-5" /> رفع شعار جديد
-                        <input type="file" accept="image/*" className="hidden" onChange={onLogoUpload} />
-                      </label>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField control={settingsForm.control} name="siteName" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">اسم الموقع</FormLabel><Input className="h-14 rounded-2xl border-gray-200 font-bold" {...field}/></FormItem>)}/>
-                    <FormField control={settingsForm.control} name="primaryColor" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">اللون الأساسي</FormLabel><div className="flex gap-2"><Input type="color" className="w-16 h-14 p-1 rounded-2xl cursor-pointer" {...field}/><Input className="h-14 rounded-2xl flex-1 font-mono text-xs font-bold" {...field}/></div></FormItem>)}/>
-                    <FormField control={settingsForm.control} name="siteTagline" render={({field})=>(<FormItem className="md:col-span-2"><FormLabel className="font-black text-xs text-gray-500">الشعار اللفظي (Tagline)</FormLabel><Input className="h-14 rounded-2xl border-gray-200 font-bold" {...field}/></FormItem>)}/>
-                  </div>
-               </CardContent>
-            </Card>
-
-            {/* النصوص */}
-            <Card className="rounded-[2rem] border-0 shadow-xl overflow-hidden">
-               <CardHeader className="bg-gray-50 border-b"><CardTitle className="text-lg flex items-center gap-2 font-black text-blue-700"><Settings className="w-5 h-5"/> نصوص الواجهة</CardTitle></CardHeader>
-               <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField control={settingsForm.control} name="availabilityText" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">نص التوفر</FormLabel><Input className="h-14 rounded-2xl font-bold border-gray-200" {...field}/></FormItem>)}/>
-                  <FormField control={settingsForm.control} name="heroTitle" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">العنوان الرئيسي</FormLabel><Input className="h-14 rounded-2xl font-bold border-gray-200" {...field}/></FormItem>)}/>
-                  <FormField control={settingsForm.control} name="heroTitleHighlight" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">الكلمة الملونة</FormLabel><Input className="h-14 rounded-2xl font-bold border-gray-200" {...field}/></FormItem>)}/>
-                  <FormField control={settingsForm.control} name="formTitle" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">عنوان النموذج</FormLabel><Input className="h-14 rounded-2xl font-bold border-gray-200" {...field}/></FormItem>)}/>
-                  <FormField control={settingsForm.control} name="formSubtitle" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">وصف النموذج</FormLabel><Input className="h-14 rounded-2xl font-bold border-gray-200" {...field}/></FormItem>)}/>
-                  <FormField control={settingsForm.control} name="successMessage" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">رسالة النجاح</FormLabel><Input className="h-14 rounded-2xl font-bold border-gray-200" {...field}/></FormItem>)}/>
-                  <FormField control={settingsForm.control} name="heroDescription" render={({field})=>(<FormItem className="md:col-span-2"><FormLabel className="font-black text-xs text-gray-500">وصف الخدمة</FormLabel><Textarea className="rounded-[1.5rem] font-bold p-4" {...field}/></FormItem>)}/>
-                  <FormField control={settingsForm.control} name="footerText" render={({field})=>(<FormItem className="md:col-span-2"><FormLabel className="font-black text-xs text-gray-500">نص الفوتر</FormLabel><Input className="h-14 rounded-2xl font-bold border-gray-200" {...field}/></FormItem>)}/>
-               </CardContent>
-            </Card>
-
-            {/* الحسابات البنكية */}
-            <Card className="rounded-[2rem] border-0 shadow-xl overflow-hidden">
-               <CardHeader className="bg-gray-50 border-b"><CardTitle className="text-lg flex items-center gap-2 font-black text-green-700"><Banknote className="w-5 h-5"/> الحسابات البنكية والأمان</CardTitle></CardHeader>
-               <CardContent className="p-8 space-y-8">
-                  <div className="bg-blue-50/50 border border-blue-100 rounded-[2.5rem] p-6 space-y-6 shadow-inner">
-                     <div className="flex justify-between items-center px-2">
-                       <label className="font-black text-blue-900 text-lg">البنوك المتاحة للعملاء</label>
-                       <button type="button" onClick={()=>{ 
-                           let cur = []; 
-                           try { 
-                             const v = settingsForm.getValues("bankName"); 
-                             if(v.startsWith("[")) cur = JSON.parse(v); 
-                             else if(v) cur = [{bank:v, name: settingsForm.getValues("bankAccountName"), number: settingsForm.getValues("bankAccountNumber")}]; 
-                           } catch(e){} 
-                           cur.push({bank:"بنك جديد", name:"", number:""}); 
-                           settingsForm.setValue("bankName", JSON.stringify(cur), {shouldDirty:true}); 
-                       }} className="bg-blue-600 text-white px-5 py-3 rounded-2xl font-black text-xs shadow-lg shadow-blue-600/30 hover:scale-105 transition-transform">+ إضافة حساب</button>
-                     </div>
-                     <FormField control={settingsForm.control} name="bankName" render={({field})=>{ 
-                        let banks: any[] = []; 
-                        try { 
-                          if(field.value && typeof field.value === 'string' && field.value.startsWith("[")) {
-                            banks = JSON.parse(field.value); 
-                          } else if(field.value) {
-                            banks = [{bank: field.value, name: settingsForm.getValues("bankAccountName"), number: settingsForm.getValues("bankAccountNumber")}]; 
-                          }
-                        } catch(e){} 
-                        return (
-                          <div className="space-y-4">
-                            {banks.map((b:any, i:number)=>(
-                               <div key={i} className="bg-white p-4 rounded-3xl border border-blue-100 flex gap-3 flex-wrap sm:flex-nowrap shadow-sm">
-                                  <Input className="flex-1 font-black text-xs h-12" placeholder="البنك" value={b.bank} onChange={e=>{ const nb = [...banks]; nb[i].bank = e.target.value; field.onChange(JSON.stringify(nb)); }}/> 
-                                  <Input className="flex-1 font-black text-xs h-12" placeholder="الاسم" value={b.name} onChange={e=>{ const nb = [...banks]; nb[i].name = e.target.value; field.onChange(JSON.stringify(nb)); }}/> 
-                                  <Input className="flex-1 font-mono text-sm text-left h-12" dir="ltr" placeholder="الرقم" value={b.number} onChange={e=>{ const nb = [...banks]; nb[i].number = e.target.value; field.onChange(JSON.stringify(nb)); }}/> 
-                                  <button type="button" onClick={()=>{ const nb = banks.filter((_:any,idx:number)=>idx!==i); field.onChange(JSON.stringify(nb)); }} className="text-red-500 font-black px-3 hover:bg-red-50 rounded-2xl transition-colors">✕</button>
-                               </div>
-                            ))}
-                          </div>
-                        ) 
-                     }}/>
-                  </div>
-                  <FormField control={settingsForm.control} name="adminPin" render={({field})=>(<FormItem><FormLabel className="font-black text-xs text-gray-500">رمز PIN لوحة التحكم (للحماية)</FormLabel><Input className="h-16 rounded-[1.5rem] text-center tracking-[0.6em] font-black text-2xl border-gray-200 bg-gray-50 shadow-inner" {...field}/></FormItem>)}/>
-               </CardContent>
-            </Card>
-
-            {/* قالب الواتس */}
-            <Card className="rounded-[2rem] border-0 shadow-xl overflow-hidden">
-               <CardHeader className="bg-green-50 border-b border-green-100"><CardTitle className="text-lg flex items-center gap-2 font-black text-green-800"><MessageCircle className="w-5 h-5 text-green-600"/> قالب رسالة الواتساب</CardTitle></CardHeader>
-               <CardContent className="p-8">
-                 <FormField control={settingsForm.control} name="whatsappTemplate" render={({field})=>(<FormItem><FormControl><Textarea rows={10} className="rounded-[2rem] font-mono text-sm leading-relaxed p-6 bg-gray-50 border-gray-200 font-bold" {...field}/></FormControl></FormItem>)}/>
-                 
-                 <div className="flex justify-end pt-8">
-                   <Button type="submit" disabled={updateSettings.isPending} className="h-16 px-16 rounded-[2rem] font-black text-lg shadow-2xl shadow-primary/40 hover:scale-[1.03] transition-all bg-primary hover:bg-primary/90 text-white">
-                     حفظ الإعدادات كاملة <Save className="mr-3 w-6 h-6"/>
-                   </Button>
-                 </div>
-               </CardContent>
-            </Card>
-
-          </form>
-          </Form>
+              </form>
+            </Form>
+          )}
         </TabsContent>
       </Tabs>
     </div>

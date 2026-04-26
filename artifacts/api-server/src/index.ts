@@ -5,7 +5,7 @@ import ordersRouter from "./routes/orders";
 import driversRouter from "./routes/drivers";
 import phonesRouter from "./routes/phones";
 import settingsRouter from "./routes/settings";
-import areasRouter from "./routes/areas";
+import areasRouter from "./routes/delivery-areas";
 
 const app = express();
 

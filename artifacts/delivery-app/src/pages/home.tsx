@@ -159,7 +159,7 @@ export default function Home() {
         deliveryArea: data.deliveryArea || null,
         deliveryFee: selectedAreaData?.price ?? null,
         paymentMethod: data.paymentMethod,
-        paymentReceiptImage: receiptImage || null,
+        paymentReceiptImage: null, // قمنا بإلغاء إرسال الصورة هنا
         locationLat: gpsCoords?.lat ?? null,
         locationLng: gpsCoords?.lng ?? null,
         locationLink: gpsLink ?? null,

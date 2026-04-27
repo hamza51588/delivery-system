@@ -43,19 +43,19 @@ export interface OrderStats {
 const ORDERS_KEY = ["orders"];
 
 async function fetchOrders(): Promise<Order[]> {
-  const res = await fetch("https://delivery-system-s41p.onrender.com/api/orders");
+  const res = await fetch("https://workspaceapi-server-production-af1a.up.railway.app/api/orders");
   if (!res.ok) throw new Error("فشل التحميل");
   return res.json();
 }
 
 async function fetchStats(): Promise<OrderStats> {
-  const res = await fetch("https://delivery-system-s41p.onrender.com/api/orders/stats");
+  const res = await fetch("https://workspaceapi-server-production-af1a.up.railway.app/api/orders/stats");
   if (!res.ok) throw new Error("فشل التحميل");
   return res.json();
 }
 
 async function trackOrder(id: number, phone: string): Promise<TrackResult> {
-  const res = await fetch(`https://delivery-system-s41p.onrender.com/api/orders/track?id=${id}&phone=${encodeURIComponent(phone)}`);
+  const res = await fetch(`https://workspaceapi-server-production-af1a.up.railway.app/api/orders/track?id=${id}&phone=${encodeURIComponent(phone)}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || "لم يتم العثور على الطلب");
@@ -75,7 +75,7 @@ export function useCreateOrder() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch("https://delivery-system-s41p.onrender.com/api/orders", {
+      const res = await fetch("https://workspaceapi-server-production-af1a.up.railway.app/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -94,7 +94,7 @@ export function useUpdateOrder() {
   const qc = useQueryClient();
   return {
     mutateAsync: async ({ id, data }: { id: number; data: Record<string, unknown> }) => {
-      const res = await fetch(`https://delivery-system-s41p.onrender.com/api/orders/${id}`, {
+      const res = await fetch(`https://workspaceapi-server-production-af1a.up.railway.app/api/orders/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -111,7 +111,7 @@ export function useUploadReceipt() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, image }: { id: number; image: string }) => {
-      const res = await fetch(`https://delivery-system-s41p.onrender.com/api/orders/${id}/receipt`, {
+      const res = await fetch(`https://workspaceapi-server-production-af1a.up.railway.app/api/orders/${id}/receipt`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image }),

@@ -11,7 +11,7 @@ export interface Cashier {
 const KEY = ["cashiers"];
 
 async function fetchCashiers(): Promise<Cashier[]> {
-  const res = await fetch( "https://delivery-system-s41p.onrender.com/api/cashiers");
+  const res = await fetch( "https://workspaceapi-server-production-af1a.up.railway.app/api/cashiers");
   if (!res.ok) return [];
   return res.json();
 }
@@ -24,7 +24,7 @@ export function useAddCashier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: { name: string; phone?: string; notes?: string }) => {
-      const res = await fetch( "https://delivery-system-s41p.onrender.com/api/cashiers", {
+      const res = await fetch( "https://workspaceapi-server-production-af1a.up.railway.app/api/cashiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -40,7 +40,7 @@ export function useDeleteCashier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`https://delivery-system-s41p.onrender.com/api/cashiers/${id}`, { method: "DELETE" });
+      const res = await fetch(`https://workspaceapi-server-production-af1a.up.railway.app/api/cashiers/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("فشل الحذف");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),

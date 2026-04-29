@@ -415,12 +415,12 @@ export default function Home() {
                                     </label>
                                     
                                     {/* Gallery Button */}
-                                    {/* <label className="cursor-pointer flex flex-col items-center justify-center gap-2 p-3 bg-white hover:bg-gray-50 border border-[#a5b4fc] rounded-xl text-[#4338ca] transition-colors shadow-sm">
-  <ImageIcon className="w-6 h-6" />
-  <span className="text-xs font-bold">إرفاق من الاستوديو</span>
-  <input type="file" accept="image/*" className="hidden" onChange={handleReceiptUpload} />
-</label> 
-*/}
+                                    <label className="cursor-pointer flex flex-col items-center justify-center gap-2 p-3 bg-white hover:bg-gray-50 border border-[#a5b4fc] rounded-xl text-[#4338ca] transition-colors shadow-sm">
+                                      <ImageIcon className="w-6 h-6" />
+                                      <span className="text-xs font-bold">إرفاق من الاستوديو</span>
+                                      <input type="file" accept="image/*" className="hidden" onChange={handleReceiptUpload} />
+                                    </label>
+                                  </div>
                                   
                                   {receiptImage && (
                                     <div className="mt-4 relative group">

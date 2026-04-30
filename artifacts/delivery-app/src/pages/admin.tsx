@@ -1,3 +1,4 @@
+import { User, Loader2, ... } from 'lucide-react';
 import { Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
@@ -534,18 +535,34 @@ export default function Admin() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {isDriversLoading ? [1,2].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />) :
               drivers?.length === 0 ? <p className="text-gray-500 col-span-2 text-center py-8">لا يوجد سائقون بعد</p> :
-              drivers?.map(driver => (
-                <div key={driver.id} className="flex items-center justify-between p-5 bg-white border border-border/50 rounded-2xl shadow-sm">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center"><Truck className="w-6 h-6" /></div>
-                    <div>
-                      <p className="font-bold text-gray-900 text-lg">{driver.name}</p>
-                      {driver.phone && <p className="text-sm text-gray-500" dir="ltr">{driver.phone}</p>}
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => { if (confirm("حذف هذا السائق؟")) deleteDriver.mutateAsync(driver.id); }}
-                    className="text-red-500 hover:bg-red-50 h-10 w-10 rounded-xl"><Trash2 className="w-5 h-5" /></Button>
-                </div>
+                drivers?.map(driver => (
+  <div key={driver.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-sm mb-2">
+    <div className="flex items-center gap-3">
+      
+      <div className="relative">
+        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+           
+           <User size="{20}"/> 
+        </div>
+        
+        <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${
+          driver.isAvailable 
+          ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]' 
+          : 'bg-red-500'
+        }`}></div>
+      </div>
+
+      <div className="flex flex-col">
+        <span className="font-bold text-sm text-gray-800">{driver.name}</span>
+        <span className={`text-[10px] font-bold ${driver.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
+          {driver.isAvailable ? '• متوفر الآن' : '• مشغول/غير متاح'}
+        </span>
+      </div>
+    </div>
+
+    
+  </div>
+))
               ))
             }
           </div>

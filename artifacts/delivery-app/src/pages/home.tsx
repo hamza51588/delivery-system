@@ -404,24 +404,6 @@ export default function Home() {
                                   className="w-full h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 mb-4"
                                 />
 
-                                <div className="bg-[#eff6ff] border-2 border-dashed border-[#93c5fd] rounded-2xl p-4 relative">
-                                  <p className="text-xs text-center text-red-600 font-bold mb-3">إرفاق صورة السند (مطلوب)</p>
-                                  <div className="grid grid-cols-2 gap-3">
-                                    {/* Camera Button */}
-                                    <label className="cursor-pointer flex flex-col items-center justify-center gap-2 p-3 bg-[#e0e7ff] hover:bg-[#c7d2fe] border border-[#a5b4fc] rounded-xl text-[#4338ca] transition-colors shadow-sm">
-                                      <CameraIcon className="w-6 h-6" />
-                                      <span className="text-xs font-bold">تصوير السند</span>
-                                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleReceiptUpload} />
-                                    </label>
-                                    
-                                    {/* Gallery Button */}
-                                    <label className="cursor-pointer flex flex-col items-center justify-center gap-2 p-3 bg-white hover:bg-gray-50 border border-[#a5b4fc] rounded-xl text-[#4338ca] transition-colors shadow-sm">
-                                      <ImageIcon className="w-6 h-6" />
-                                      <span className="text-xs font-bold">إرفاق من الاستوديو</span>
-                                      <input type="file" accept="image/*" className="hidden" onChange={handleReceiptUpload} />
-                                    </label>
-                                  </div>
-                                  
                                   {receiptImage && (
                                     <div className="mt-4 relative group">
                                       <img src={receiptImage} alt="السند" className="w-full h-40 object-cover rounded-xl border border-[#93c5fd] shadow-sm" />

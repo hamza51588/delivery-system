@@ -396,6 +396,9 @@ export default function Admin() {
       .replace("{address}", order.address)
       .replace("{orderDetails}", order.orderDetails)
       .replace("{notes}", order.notes || "لا يوجد");
+      .replace("{area}", order.deliveryArea || "غير محدد")
+      .replace("{paymentMethod}", order.paymentMethod === 'bank_transfer' ? "تحويل بنكي" : "عند الاستلام")
+      .replace("{deliveryFee}", String(order.deliveryFee || 0));
     if (order.locationLink) text += `\n🗺️ الموقع: ${order.locationLink}`;
     const encoded = encodeURIComponent(text);
     const targetPhones = Array.isArray(phones) && phones.length > 0 ? (phones || []).map(p => p.phoneNumber) : ["967775864948"];

@@ -10,7 +10,15 @@ import Track from "./pages/track";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, 
+      refetchOnReconnect: false,   
+      refetchOnMount: false,       
+      retry: 1,                    
+      staleTime: 5 * 60 * 1000,    // ✨ السطر السحري: يخبر النظام أن البيانات "طازجة" لمدة 5 دقائق ولا داعي لتحديثها
+    },
+  },
 });
 
 // نركز على مسار الموقع الافتراضي

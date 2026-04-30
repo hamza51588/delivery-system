@@ -5,7 +5,7 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const rawPort = process.env.PORT;
-if (!rawPort) throw new Error("PORT environment variable is required.");
+if (!rawPort) throw new Error("PORT required");
 const port = Number(rawPort);
 const basePath = process.env.BASE_PATH || "/";
 
@@ -31,7 +31,7 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
-    hmr: false, // تم الإيقاف لمنع تحديث الصفحة في الجوال
+    hmr: false,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

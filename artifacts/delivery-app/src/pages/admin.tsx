@@ -1,4 +1,4 @@
-import { User, Loader2, ... } from 'lucide-react';
+import { User, Loader2, Package, Trash2, Edit, Plus, Phone, MapPin } from 'lucide-react';
 import { Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";

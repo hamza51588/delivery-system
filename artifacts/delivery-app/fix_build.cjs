@@ -24,15 +24,15 @@ if (startIndex !== -1 && endIndex !== -1) {
     const newMiddle = `\n                              <div className="text-sm text-blue-700 space-y-2 font-medium mt-3 mb-3">
                                 <p className="text-blue-800 font-bold mb-2">اضغط لاختيار البنك الذي ستُحول إليه:</p>
                                 <button type="button" onClick={() => setSelectedBank("العمقي")} className={\`w-full bg-white p-2.5 rounded-xl border-2 transition-all flex justify-between items-center \${selectedBank === "العمقي" ? "border-primary bg-orange-50" : "border-transparent"}\`}>
-                                  <div className="text-right"><p className="font-bold text-gray-900">🏦 العمقي للصرافة</p><p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر طلبك علينا"}</p></div>
+                                  <div className="text-right"><p className="font-bold text-gray-900">🏦 العمقي للصرافة</p><p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر المدار السريع"}</p></div>
                                   <span className="font-bold text-primary" dir="ltr">123456789</span>
                                 </button>
                                 <button type="button" onClick={() => setSelectedBank("الكريمي")} className={\`w-full bg-white p-2.5 rounded-xl border-2 transition-all flex justify-between items-center \${selectedBank === "الكريمي" ? "border-primary bg-orange-50" : "border-transparent"}\`}>
-                                  <div className="text-right"><p className="font-bold text-gray-900">🏦 بنك الكريمي</p><p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر طلبك علينا"}</p></div>
+                                  <div className="text-right"><p className="font-bold text-gray-900">🏦 بنك الكريمي</p><p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر المدار السريع"}</p></div>
                                   <span className="font-bold text-primary" dir="ltr">987654321</span>
                                 </button>
                                 <button type="button" onClick={() => setSelectedBank("النجم")} className={\`w-full bg-white p-2.5 rounded-xl border-2 transition-all flex justify-between items-center \${selectedBank === "النجم" ? "border-primary bg-orange-50" : "border-transparent"}\`}>
-                                  <div className="text-right"><p className="font-bold text-gray-900">🏦 النجم للصرافة</p><p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر طلبك علينا"}</p></div>
+                                  <div className="text-right"><p className="font-bold text-gray-900">🏦 النجم للصرافة</p><p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر المدار السريع"}</p></div>
                                   <span className="font-bold text-primary" dir="ltr">55667788</span>
                                 </button>
                                 {selectedBank && <p className="text-center text-xs text-primary font-bold mt-2">✅ اخترت الدفع عبر: {selectedBank}</p>}

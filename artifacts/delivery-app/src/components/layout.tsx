@@ -15,7 +15,7 @@ export function Layout({ children }: LayoutProps) {
   const [, setLocation] = useLocation();
   const { data: settings } = useSettings();
 
-  const siteName = settings?.siteName || "طلبك علينا";
+  const siteName = settings?.siteName || "المدار السريع";
   const siteTagline = settings?.siteTagline || "أسرع خدمة توصيل";
   const footerText = settings?.footerText || "حمزة محمد المروني للتواصل 775864948  .";
   const logoImage = settings?.logoImage || "";

@@ -6,7 +6,7 @@ let code = fs.readFileSync(homePath, 'utf8');
 
 // 1. إضافة قيم البنك المفقودة للـ Payload لإرضاء السيرفر
 const oldPayload = 'paymentMethod: data.paymentMethod,';
-const newPayload = 'paymentMethod: data.paymentMethod,\n        bankName: selectedBank || "صرافة خارجية",\n        bankAccountName: "متجر طلبك علينا",\n        bankAccountNumber: "000000",';
+const newPayload = 'paymentMethod: data.paymentMethod,\n        bankName: selectedBank || "صرافة خارجية",\n        bankAccountName: "متجر المدار السريع",\n        bankAccountNumber: "000000",';
 
 if (code.includes(oldPayload) && !code.includes('bankName: selectedBank')) {
     code = code.replace(oldPayload, newPayload);

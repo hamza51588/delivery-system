@@ -22,7 +22,7 @@ export interface SiteSettings {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  siteName: "طلبك علينا",
+  siteName: "المدار السريع",
   siteTagline: "أسرع خدمة توصيل",
   heroTitle: "توصيل سريع،",
   heroTitleHighlight: "مضمون وموثوق",

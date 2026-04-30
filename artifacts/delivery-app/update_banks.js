@@ -16,7 +16,7 @@ const newBankDetails = `<div className="text-sm text-blue-700 space-y-2 font-med
                                 <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-sm flex justify-between items-center">
                                   <div>
                                     <p className="font-bold text-gray-900">🏦 العمقي للصرافة</p>
-                                    <p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر طلبك علينا"}</p>
+                                    <p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر المدار السريع"}</p>
                                   </div>
                                   <span className="font-bold text-primary" dir="ltr">123456789</span>
                                 </div>
@@ -24,7 +24,7 @@ const newBankDetails = `<div className="text-sm text-blue-700 space-y-2 font-med
                                 <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-sm flex justify-between items-center">
                                   <div>
                                     <p className="font-bold text-gray-900">🏦 بنك الكريمي</p>
-                                    <p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر طلبك علينا"}</p>
+                                    <p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر المدار السريع"}</p>
                                   </div>
                                   <span className="font-bold text-primary" dir="ltr">987654321</span>
                                 </div>
@@ -32,7 +32,7 @@ const newBankDetails = `<div className="text-sm text-blue-700 space-y-2 font-med
                                 <div className="bg-white p-2.5 rounded-xl border border-blue-100 shadow-sm flex justify-between items-center">
                                   <div>
                                     <p className="font-bold text-gray-900">🏦 النجم للصرافة</p>
-                                    <p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر طلبك علينا"}</p>
+                                    <p className="text-xs text-gray-500">الاسم: {s?.bankAccountName || "متجر المدار السريع"}</p>
                                   </div>
                                   <span className="font-bold text-primary" dir="ltr">55667788</span>
                                 </div>

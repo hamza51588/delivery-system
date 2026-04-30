@@ -325,7 +325,7 @@ export default function Admin() {
   const settingsForm = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      siteName: "طلبك علينا", siteTagline: "أسرع خدمة توصيل",
+      siteName: "المدار السريع", siteTagline: "أسرع خدمة توصيل",
       heroTitle: "توصيل سريع،", heroTitleHighlight: "مضمون وموثوق",
       heroDescription: "اطلب الآن وسنقوم بتوصيل طلبك بأسرع وقت ممكن.",
       availabilityText: "متاحون الآن للخدمة",

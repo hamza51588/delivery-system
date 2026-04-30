@@ -1,14 +1,12 @@
-import { User, Loader2, Package, Trash2, Edit, Plus, Phone, MapPin } from 'lucide-react';
-import { Package } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import {
   Trash2, Phone as PhoneIcon, Plus, MapPin, User, Clock,
-  FileText, Settings, Save, Palette, Lock,
+  FileText, Settings, Save, Lock,
   MessageCircle, Truck, CheckCircle2, XCircle, Image as ImageIcon,
   ChevronDown, BarChart3, TrendingUp, Calendar, ExternalLink,
-  CreditCard, Eye, Edit2, ToggleLeft, ToggleRight, Banknote,
+  CreditCard, ToggleLeft, ToggleRight, Banknote, Package
 } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -37,7 +35,7 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
   assigned:   { label: "تم التعيين",    color: "bg-blue-100 text-blue-700" },
   delivering: { label: "جاري التوصيل", color: "bg-orange-100 text-orange-700" },
   delivered:  { label: "تم التوصيل",   color: "bg-green-100 text-green-700" },
-  cancelled:  { label: "ملغي",          color: "bg-red-100 text-red-700" },
+  cancelled:  { label: "ملغي",         color: "bg-red-100 text-red-700" },
 };
 
 /* ─── schemas ─── */
@@ -120,7 +118,6 @@ function OrderCard({
   onVerifyPayment: (id: number, verified: boolean) => void;
   onWhatsApp: (order: Order) => void;
 }) {
-  const [showDrivers, setShowDrivers] = useState(false);
   const [showStatus, setShowStatus] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const st = STATUS_MAP[order.status] || STATUS_MAP.pending;
@@ -243,21 +240,21 @@ function OrderCard({
               </div>
             ) : (
               <div className="w-full mt-2">
-                    <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
-                      <Truck className="w-3.5 h-3.5" /> مرر لاختيار سائق:
-                    </p>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 snap-x [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-                      {isDriversLoading ? <p className="text-sm text-gray-500 whitespace-nowrap">جاري التحميل...</p>
-                        : drivers?.length === 0 ? <p className="text-sm text-gray-500 whitespace-nowrap">لا يوجد سائقون</p>
-                        : drivers?.map(d => (
-                          <button key={d.id} onClick={() => onAssign(order, d)}
-                            className="flex-shrink-0 snap-start px-4 py-2 bg-white border-2 border-dashed border-blue-200 rounded-xl hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all text-sm font-bold flex flex-col items-center gap-1 text-gray-700">
-                            <span className="flex items-center gap-1.5"><Truck className="w-4 h-4" /> {d.name}</span>
-                            {d.phone && <span className="text-gray-400 font-normal text-xs" dir="ltr">{d.phone}</span>}
-                          </button>
-                      ))}
-                    </div>
+                  <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
+                    <Truck className="w-3.5 h-3.5" /> مرر لاختيار سائق:
+                  </p>
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2 snap-x [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+                    {isDriversLoading ? <p className="text-sm text-gray-500 whitespace-nowrap">جاري التحميل...</p>
+                      : drivers?.length === 0 ? <p className="text-sm text-gray-500 whitespace-nowrap">لا يوجد سائقون</p>
+                      : drivers?.map(d => (
+                        <button key={d.id} onClick={() => onAssign(order, d)}
+                          className="flex-shrink-0 snap-start px-4 py-2 bg-white border-2 border-dashed border-blue-200 rounded-xl hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all text-sm font-bold flex flex-col items-center gap-1 text-gray-700">
+                          <span className="flex items-center gap-1.5"><Truck className="w-4 h-4" /> {d.name}</span>
+                          {d.phone && <span className="text-gray-400 font-normal text-xs" dir="ltr">{d.phone}</span>}
+                        </button>
+                    ))}
                   </div>
+                </div>
             )}
           </div>
 
@@ -400,7 +397,7 @@ export default function Admin() {
       .replace("{area}", order.deliveryArea || "غير محدد")
       .replace("{paymentMethod}", order.paymentMethod === 'bank_transfer' ? "تحويل بنكي" : "عند الاستلام")
       .replace("{deliveryFee}", String(order.deliveryFee || 0));
-    if (order.locationLink) text += `\n🗺️ الموقع: ${order.locationLink}`;
+    if (order.locationLink) text += `\n🗺 الموقع: ${order.locationLink}`;
     const encoded = encodeURIComponent(text);
     const targetPhones = Array.isArray(phones) && phones.length > 0 ? (phones || []).map(p => p.phoneNumber) : ["967775864948"];
     targetPhones.forEach((ph, i) => {
@@ -536,33 +533,27 @@ export default function Admin() {
             {isDriversLoading ? [1,2].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />) :
               drivers?.length === 0 ? <p className="text-gray-500 col-span-2 text-center py-8">لا يوجد سائقون بعد</p> :
                 drivers?.map(driver => (
-  <div key={driver.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-sm mb-2">
-    <div className="flex items-center gap-3">
-      
-      <div className="relative">
-        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-           
-           <User size="{20}"/> 
-        </div>
-        
-        <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${
-          driver.isAvailable 
-          ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]' 
-          : 'bg-red-500'
-        }`}></div>
-      </div>
-
-      <div className="flex flex-col">
-        <span className="font-bold text-sm text-gray-800">{driver.name}</span>
-        <span className={`text-[10px] font-bold ${driver.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
-          {driver.isAvailable ? '• متوفر الآن' : '• مشغول/غير متاح'}
-        </span>
-      </div>
-    </div>
-
-    
-  </div>
-))
+                  <div key={driver.id} className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl shadow-sm mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                          <User size={20} />
+                        </div>
+                        <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${
+                          driver.isAvailable
+                          ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]'
+                          : 'bg-red-500'
+                        }`}></div>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm text-gray-800">{driver.name}</span>
+                        <span className={`text-[10px] font-bold ${driver.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
+                          {driver.isAvailable ? '• متوفر الآن' : '• مشغول/غير متاح'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
             }
           </div>
         </TabsContent>

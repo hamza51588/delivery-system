@@ -548,9 +548,9 @@ export default function Admin() {
                      <div className="flex flex-col gap-1.5">
   <span className="font-bold text-sm text-gray-800">{driver.name}</span>
   <div className="flex items-center gap-2">
-    <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100 font-bold">
-      رمز الدخول: {driver.id}
-    </span>
+       <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100 font-bold tracking-widest">
+  رمز الدخول: {driver.loginCode || "لا يوجد"}
+</span>
     <span className={`text-[10px] font-bold ${driver.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
       {driver.isAvailable ? '• متوفر الآن' : '• مشغول/غير متاح'}
     </span>

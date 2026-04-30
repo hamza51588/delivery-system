@@ -395,7 +395,7 @@ export default function Admin() {
       .replace("{customerPhone}", order.customerPhone)
       .replace("{address}", order.address)
       .replace("{orderDetails}", order.orderDetails)
-      .replace("{notes}", order.notes || "لا يوجد");
+      .replace("{notes}", order.notes || "لا يوجد")
       .replace("{area}", order.deliveryArea || "غير محدد")
       .replace("{paymentMethod}", order.paymentMethod === 'bank_transfer' ? "تحويل بنكي" : "عند الاستلام")
       .replace("{deliveryFee}", String(order.deliveryFee || 0));

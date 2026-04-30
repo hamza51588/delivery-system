@@ -83,7 +83,7 @@ export default function DriverDashboard() {
             </div>
             <form onSubmit={handleLogin} className="space-y-6">
               <input type="password" inputMode="numeric" placeholder="● ● ● ●" maxLength={4} value={code} onChange={(e) => setCode(e.target.value)} className="w-full text-center text-4xl tracking-[0.7em] font-black border-2 border-gray-100 rounded-2xl py-4 focus:border-primary outline-none bg-gray-50" dir="ltr" required />
-              <button type="submit" disabled={isLoading || code.length < 4} className="w-full bg-primary text-white text-lg font-black py-4 rounded-2xl shadow-xl shadow-primary/30 disabled:opacity-50">
+              <button type="submit" disabled={isLoading || code.length < 1} className="w-full bg-primary text-white text-lg font-black py-4 rounded-2xl shadow-xl shadow-primary/30 disabled:opacity-50">
                 {isLoading ? "جاري التحقق..." : "تسجيل الدخول"}
               </button>
             </form>

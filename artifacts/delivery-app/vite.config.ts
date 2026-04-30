@@ -2,46 +2,20 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-
-const rawPort = process.env.PORT;
-if (!rawPort) throw new Error("PORT required");
-const port = Number(rawPort);
-const basePath = process.env.BASE_PATH || "/";
 
 export default defineConfig({
-  base: basePath,
-  plugins: [
-    react(),
-    tailwindcss(),
-    runtimeErrorOverlay(),
-  ],
+  base: "./", 
+  plugins: [react(), tailwindcss()],
   resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "src"),
-      "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
-    },
+    alias: { "@": path.resolve(import.meta.dirname, "src") },
   },
   root: path.resolve(import.meta.dirname),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: "dist",
     emptyOutDir: true,
   },
-  server: {
-    port,
-    host: "0.0.0.0",
-    allowedHosts: true,
-    hmr: false,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-      }
-    },
-  },
+  server: { hmr: false },
   preview: {
-    port,
-    host: "0.0.0.0",
     allowedHosts: true,
-  },
+  }
 });

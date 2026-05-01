@@ -36,7 +36,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   footerText: "حمزة محمد المروني للتواصل 775864948  .",
   adminPin: "1234",
   logoImage: "",
-  bankName: "بنك العملاقي",
+  bankName: "",
   bankAccountName: "",
   bankAccountNumber: "",
 };

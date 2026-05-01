@@ -82,10 +82,10 @@ export default function Home() {
     } catch(e) { console.error("Parse error:", e); }
 
     const keys = Object.keys(data);
-    const available = keys.length > 0 ? keys : (s?.bankName && !s.bankName.includes("[") ? [s.bankName] : ["الكريمي"]);
+    const available = keys.length > 0 ? keys : (s?.bankName && !s.bankName.includes("[") ? [s.bankName] : []);
 
     const proxy = new Proxy(data, {
-      get: (target, prop: string) => target[prop] || { name: s?.bankAccountName || "الرجاء التواصل مع الإدارة", number: s?.bankAccountNumber || "غير متوفر" }
+      get: (target, prop: string) => target[prop] || { name: "", number: "" }
     });
 
     return { BANK_DATA: proxy, AVAILABLE_BANKS: available };

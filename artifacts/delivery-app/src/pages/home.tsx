@@ -70,7 +70,17 @@ export default function Home() {
     const data: any = {};
     try {
       if (s?.bankName && s.bankName.includes("|")) {
-        const arr = (s.bankName || "").split("\n").map(line => { const [b, n, num] = line.split("|").map(item => item.trim()); return { bank: b, name: n, number: num }; }).filter(i => i.bank);
+      let arr = [];
+      try {
+        if (s.bankName && s.bankName.startsWith("[")) {
+          arr = JSON.parse(s.bankName);
+        } else if (s.bankName) {
+          arr = s.bankName.split("\n").map(l => {
+            const parts = l.split("|").map(x => x.trim());
+            return { bank: parts[0], name: parts[1] || "", number: parts[2] || "" };
+          }).filter(x => x.bank);
+        }
+      } catch(e) { arr = []; }
         if (Array.isArray(arr)) {
           arr.forEach((b: any) => {
             if (b.bank) data[b.bank] = { name: b.name || "", number: b.number || "" };

@@ -704,7 +704,7 @@ export default function Admin() {
                   <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Banknote className="w-5 h-5 text-primary" /> الدفع المصرفي والأمان</CardTitle></CardHeader>
                   <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <FormField control={settingsForm.control} name="bankName" render={({ field }) => (
-                      <FormItem><FormLabel className="font-bold">اسم البنك</FormLabel><FormControl><Input placeholder="بنك العملاقي" className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
+<textarea className="w-full p-3 border border-gray-300 rounded-xl h-32 focus:ring-2 focus:ring-primary text-right" dir="rtl" placeholder="اسم البنك | صاحب الحساب | رقم الحساب" {...field} />
                     )} />
                     <FormField control={settingsForm.control} name="bankAccountName" render={({ field }) => (
                       <FormItem><FormLabel className="font-bold">اسم صاحب الحساب</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>

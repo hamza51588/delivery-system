@@ -678,7 +678,7 @@ export default function Admin() {
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-bold text-gray-700 transition-colors">
-                          <ImageIcon className="w-4 h-4" /> رفع الشعار
+                          <PackageIcon className="w-4 h-4" /> رفع الشعار
                           <input type="file" accept="image/*" className="hidden" onChange={onLogoUpload} />
                         </label>
                         {settingsForm.watch("logoImage") && <button type="button" onClick={() => settingsForm.setValue("logoImage", "")} className="text-xs text-red-500 font-bold text-right">✕ إزالة الشعار</button>}

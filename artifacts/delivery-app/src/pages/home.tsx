@@ -69,8 +69,8 @@ export default function Home() {
   const { BANK_DATA, AVAILABLE_BANKS } = useMemo(() => {
     const data: any = {};
     try {
-      if (s?.bankName && s.bankName.includes("[")) {
-        const arr = JSON.parse(s.bankName);
+      if (s?.bankName && s.bankName.includes("|")) {
+        const arr = (s.bankName || "").split("\n").map(line => { const [b, n, num] = line.split("|").map(item => item.trim()); return { bank: b, name: n, number: num }; }).filter(i => i.bank);
         if (Array.isArray(arr)) {
           arr.forEach((b: any) => {
             if (b.bank) data[b.bank] = { name: b.name || "", number: b.number || "" };
@@ -82,7 +82,7 @@ export default function Home() {
     } catch(e) { console.error("Parse error:", e); }
 
     const keys = Object.keys(data);
-    const available = keys.length > 0 ? keys : (s?.bankName && !s.bankName.includes("[") ? [s.bankName] : []);
+    const available = keys.length > 0 ? keys : (s?.bankName && !s.bankName.includes("|") ? [s.bankName] : []);
 
     const proxy = new Proxy(data, {
       get: (target, prop: string) => target[prop] || { name: "", number: "" }

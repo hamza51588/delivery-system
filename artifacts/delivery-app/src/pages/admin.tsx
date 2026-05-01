@@ -520,10 +520,10 @@ export default function Admin() {
               <Form {...driverForm}>
                 <form onSubmit={driverForm.handleSubmit(onAddDriver)} className="flex flex-col sm:flex-row gap-4">
                   <FormField control={driverForm.control} name="name" render={({ field }) => (
-                    <FormItem className="flex-1"><FormControl><Input placeholder="اسم السائق" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem className="flex-1"><FormControl><Input placeholder="اسم السائق" className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={driverForm.control} name="phone" render={({ field }) => (
-                    <FormItem className="flex-1"><FormControl><Input placeholder="رقم الهاتف (اختياري)" dir="ltr" className="h-12 rounded-xl text-right" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem className="flex-1"><FormControl><Input placeholder="رقم الهاتف (اختياري)" dir="ltr" className="h-12 rounded-xl text-right" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <Button type="submit" disabled={addDriver.isPending} className="h-12 px-8 rounded-xl font-bold">إضافة</Button>
                 </form>
@@ -572,11 +572,11 @@ export default function Admin() {
               <Form {...areaForm}>
                 <form onSubmit={areaForm.handleSubmit(onAddArea)} className="flex flex-col sm:flex-row gap-4">
                   <FormField control={areaForm.control} name="name" render={({ field }) => (
-                    <FormItem className="flex-1"><FormControl><Input placeholder="اسم المنطقة (مثال: سيئون، المدينة الجديدة)" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem className="flex-1"><FormControl><Input placeholder="اسم المنطقة (مثال: سيئون، المدينة الجديدة)" className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={areaForm.control} name="price" render={({ field }) => (
                     <FormItem className="w-40">
-                      <FormControl><Input type="number" min="0" placeholder="السعر (ريال)" className="h-12 rounded-xl" {...field} /></FormControl>
+                      <FormControl><Input type="number" min="0" placeholder="السعر (ريال)" className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -632,10 +632,10 @@ export default function Admin() {
               <Form {...phoneForm}>
                 <form onSubmit={phoneForm.handleSubmit(onAddPhone)} className="flex flex-col sm:flex-row gap-4">
                   <FormField control={phoneForm.control} name="phoneNumber" render={({ field }) => (
-                    <FormItem className="flex-1"><FormControl><Input placeholder="رقم الهاتف (مثال: 967775864948)" dir="ltr" className="h-12 text-right rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem className="flex-1"><FormControl><Input placeholder="رقم الهاتف (مثال: 967775864948)" dir="ltr" className="h-12 text-right rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={phoneForm.control} name="label" render={({ field }) => (
-                    <FormItem className="flex-1"><FormControl><Input placeholder="وصف (اختياري)" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem className="flex-1"><FormControl><Input placeholder="وصف (اختياري)" className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <Button type="submit" disabled={addPhone.isPending} className="h-12 px-8 rounded-xl font-bold">إضافة</Button>
                 </form>
@@ -687,13 +687,13 @@ export default function Admin() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <FormField control={settingsForm.control} name="siteName" render={({ field }) => (
-                        <FormItem><FormLabel className="font-bold">اسم الموقع</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel className="font-bold">اسم الموقع</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={settingsForm.control} name="siteTagline" render={({ field }) => (
-                        <FormItem><FormLabel className="font-bold">الشعار الفرعي</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel className="font-bold">الشعار الفرعي</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                       )} />
                       <FormField control={settingsForm.control} name="footerText" render={({ field }) => (
-                        <FormItem className="sm:col-span-2"><FormLabel className="font-bold">نص الفوتر</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem className="sm:col-span-2"><FormLabel className="font-bold">نص الفوتر</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                       )} />
                     </div>
                   </CardContent>
@@ -704,18 +704,18 @@ export default function Admin() {
                   <CardHeader className="bg-gray-50/50 border-b"><CardTitle className="text-lg font-bold flex items-center gap-2"><Banknote className="w-5 h-5 text-primary" /> الدفع المصرفي والأمان</CardTitle></CardHeader>
                   <CardContent className="pt-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <FormField control={settingsForm.control} name="bankName" render={({ field }) => (
-                      <FormItem><FormLabel className="font-bold">اسم البنك</FormLabel><FormControl><Input placeholder="بنك العملاقي" className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel className="font-bold">اسم البنك</FormLabel><FormControl><Input placeholder="بنك العملاقي" className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={settingsForm.control} name="bankAccountName" render={({ field }) => (
-                      <FormItem><FormLabel className="font-bold">اسم صاحب الحساب</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel className="font-bold">اسم صاحب الحساب</FormLabel><FormControl><Input className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={settingsForm.control} name="bankAccountNumber" render={({ field }) => (
-                      <FormItem><FormLabel className="font-bold">رقم الحساب</FormLabel><FormControl><Input dir="ltr" className="h-12 rounded-xl text-right" {...field} /></FormControl><FormMessage /></FormItem>
+                      <FormItem><FormLabel className="font-bold">رقم الحساب</FormLabel><FormControl><Input dir="ltr" className="h-12 rounded-xl text-right" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={settingsForm.control} name="adminPin" render={({ field }) => (
                       <FormItem>
                         <FormLabel className="font-bold flex items-center gap-2"><Lock className="w-4 h-4" /> الرمز السري للإدارة</FormLabel>
-                        <FormControl><Input type="text" inputMode="numeric" placeholder="1234" className="h-12 rounded-xl tracking-widest text-center font-bold" maxLength={8} {...field} /></FormControl>
+                        <FormControl><Input type="text" inputMode="numeric" placeholder="1234" className="h-12 rounded-xl tracking-widest text-center font-bold" maxLength={8} {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -724,7 +724,7 @@ export default function Admin() {
                         <FormLabel className="font-bold">اللون الأساسي</FormLabel>
                         <div className="flex items-center gap-3 mt-1">
                           <input type="color" value={field.value} onChange={field.onChange} className="w-14 h-12 rounded-xl cursor-pointer border border-gray-200 p-1" />
-                          <FormControl><Input className="h-12 rounded-xl flex-1" {...field} /></FormControl>
+                          <FormControl><Input className="h-12 rounded-xl flex-1" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl>
                           <div className="w-12 h-12 rounded-xl border border-gray-200" style={{ backgroundColor: field.value }} />
                         </div>
                         <FormMessage />
@@ -748,7 +748,7 @@ export default function Admin() {
                     ].map(f => (
                       <FormField key={f.name} control={settingsForm.control} name={f.name} render={({ field }) => (
                         <FormItem className={f.col || ""}><FormLabel className="font-bold">{f.label}</FormLabel>
-                          <FormControl><Input className="h-12 rounded-xl" {...field} /></FormControl><FormMessage /></FormItem>
+                          <FormControl><Input className="h-12 rounded-xl" {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl><FormMessage /></FormItem>
                       )} />
                     ))}
                   </CardContent>
@@ -766,7 +766,7 @@ export default function Admin() {
                           ))}
                           <br /><em className="text-gray-400">رابط الموقع يُضاف تلقائياً إذا توفر</em>
                         </FormDescription>
-                        <FormControl><Textarea className="rounded-xl resize-none font-mono text-sm" rows={7} {...field} /></FormControl>
+                        <FormControl><Textarea className="rounded-xl resize-none font-mono text-sm" rows={7} {...field} value={typeof field.value === "string" && field.value.startsWith("{\"") ? JSON.parse(field.value).bank : (field.value || "")} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />

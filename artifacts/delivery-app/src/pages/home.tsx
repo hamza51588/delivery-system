@@ -44,6 +44,37 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 }
 
 export default function Home() {
+
+  const [promoCode, setPromoCode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [promoStatus, setPromoStatus] = useState<"loading" | "success" | "error" | null>(null);
+  const [promoMessage, setPromoMessage] = useState("");
+
+  const handleApplyPromo = async () => {
+    if (!promoCode) return;
+    setPromoStatus("loading");
+    try {
+      const res = await fetch("/api/promos/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setDiscount(data.discountValue);
+        setPromoStatus("success");
+        setPromoMessage(`✅ تم تفعيل الخصم: ${data.discountValue} ريال`);
+      } else {
+        setDiscount(0);
+        setPromoStatus("error");
+        setPromoMessage(data.error || "❌ الكود غير صحيح أو منتهي");
+      }
+    } catch (e) {
+      setPromoStatus("error");
+      setPromoMessage("⚠️ تأكد من اتصالك بالإنترنت");
+    }
+  };
+
   const { toast } = useToast();
   const createOrder = useCreateOrder();
   const uploadReceipt = useUploadReceipt();
@@ -180,7 +211,15 @@ export default function Home() {
         locationLink: gpsLink ?? null,
       };
 
+      
+      if (discount > 0) {
+        payload.notes = payload.notes ? `${payload.notes}\n🎟️ استخدم كود (${promoCode}) بخصم: ${discount} ريال` : `🎟️ استخدم كود (${promoCode}) بخصم: ${discount} ريال`;
+        if (payload.deliveryFee) {
+            payload.deliveryFee = Math.max(0, payload.deliveryFee - discount);
+        }
+      }
       const order = await createOrder.mutateAsync(payload);
+
       
       setOrderNum(order.id);
       setIsSuccess(true);
@@ -436,6 +475,36 @@ export default function Home() {
                           </motion.div>
                         )}
                       </AnimatePresence>
+
+                      {/* Promo Code UI */}
+                      <div className="bg-white border border-blue-100 rounded-2xl p-4 shadow-sm mb-4">
+                        <label className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+                          🎟️ هل لديك كود خصم؟
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="أدخل كود الخصم هنا..."
+                            value={promoCode}
+                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                            disabled={promoStatus === "success"}
+                            className="flex-1 h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleApplyPromo}
+                            disabled={!promoCode || promoStatus === "loading" || promoStatus === "success"}
+                            className="h-12 px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all"
+                          >
+                            {promoStatus === "loading" ? "جاري..." : promoStatus === "success" ? "تم التفعيل" : "تطبيق"}
+                          </button>
+                        </div>
+                        {promoMessage && (
+                          <p className={`text-xs font-bold mt-2 ${promoStatus === "success" ? "text-green-600" : "text-red-500"}`}>
+                            {promoMessage}
+                          </p>
+                        )}
+                      </div>
 
                       {/* Submit */}
                       <Button type="submit" disabled={createOrder.isPending || uploadReceipt.isPending}

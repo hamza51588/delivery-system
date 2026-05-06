@@ -379,13 +379,14 @@ export default function Admin() {
       await updateOrder.mutateAsync({ id, data: { status } });
       toast({ title: "تم تحديث الحالة" });
       
-      // --- إرسال رسالة عند تحول الطلب إلى في الطريق ---
       if (status === "delivering") {
         const order = orders?.find((o: any) => o.id === id);
         if (order) {
           const driver = drivers?.find((d: any) => d.id === order.assignedDriverId);
-          let phone = order.customerPhone || "";
-          if (phone.startsWith("7")) phone = "967" + phone;
+          
+          // 1. إرسال رسالة للزبون
+          let customerPhone = order.customerPhone || "";
+          if (customerPhone.startsWith("7")) customerPhone = "967" + customerPhone;
           
           const driverInfo = driver ? `
 
@@ -394,11 +395,8 @@ export default function Admin() {
 📞 الرقم: ${driver.phone || "لا يوجد"}` : `
 
 🛵 سيتم تعيين مندوب قريباً.`;
-          
-          // رابط الموقع الرئيسي أو صفحة التتبع
           const trackLink = window.location.origin;
-          
-          const msg = `مرحباً ${order.customerName}! 📦
+          const customerMsg = `مرحباً ${order.customerName}! 📦
 
 طلبك رقم #${order.id} أصبح الآن *في الطريق إليك*! 🚀${driverInfo}
 
@@ -407,17 +405,38 @@ export default function Admin() {
 شكراً لاختيارك المدار السريع!`;
           
           fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
-            body: JSON.stringify({ number: phone, text: msg })
-          }).catch(e => console.error("WhatsApp Error:", e));
+            method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
+            body: JSON.stringify({ number: customerPhone, text: customerMsg })
+          }).catch(e => console.error(e));
+
+          // 2. إرسال رسالة أمر التوصيل للمندوب
+          if (driver && driver.phone) {
+            let driverPhone = driver.phone;
+            if (driverPhone.startsWith("7")) driverPhone = "967" + driverPhone;
+            
+            const pMethod = order.paymentMethod === "bank_transfer" ? "تحويل بنكي" : (order.paymentMethod === "cash" ? "كاش (عند الاستلام)" : order.paymentMethod || "غير محدد");
+            const areaName = order.area || order.deliveryArea || order.areaName || "غير محدد";
+            
+            const driverMsg = `🛵 *طلب توصيل جديد*
+👤 *الاسم:* ${order.customerName || "غير محدد"}
+📞 *الهاتف:* ${order.customerPhone || "غير محدد"}
+📍 *العنوان:* ${order.address || "غير محدد"}
+🗺️ *المنطقة:* ${areaName}
+📦 *الطلب:* ${order.orderDetails || "غير محدد"}
+📝 *ملاحظات:* ${order.notes || "لا يوجد"}
+💵 *طريقة الدفع:* ${pMethod}
+🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال`;
+            
+            fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+              method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
+              body: JSON.stringify({ number: driverPhone, text: driverMsg })
+            }).catch(e => console.error(e));
+          }
         }
       }
-      // ------------------------------------------------
     } catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
-
-  const onVerifyPayment = async (id: number, verified: boolean) => {
+const onVerifyPayment = async (id: number, verified: boolean) => {
     try {
       await updateOrder.mutateAsync({ id, data: { paymentVerified: verified, status: verified ? "delivering" : "pending" } });
       toast({ title: verified ? "✅ تم قبول السند وتغيير الحالة إلى جاري التوصيل" : "تم إلغاء التحقق" });

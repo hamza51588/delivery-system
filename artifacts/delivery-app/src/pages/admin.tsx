@@ -408,7 +408,17 @@ export default function Admin() {
                 const pMethod = order.paymentMethod === "bank_transfer" ? "تحويل بنكي" : (order.paymentMethod === "cash" ? "كاش (عند الاستلام)" : order.paymentMethod || "غير محدد");
                 const areaName = order.area || order.deliveryArea || order.areaName || "غير محدد";
                 
-                const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName || "غير محدد"}\n📞 *الهاتف:* ‎${String(order.customerPhone || "").replace(/\s+/g, "") || "غير محدد"}\n📍 *العنوان:* ${order.address || "غير محدد"}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails || "غير محدد"}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال`;
+                let rawAddress = String(order.address || "غير محدد");
+                let cleanAddress = rawAddress;
+                let mapLink = "";
+                
+                if (rawAddress.includes("📍 الرابط: ")) {
+                    let parts = rawAddress.split("📍 الرابط: ");
+                    cleanAddress = parts[0].replace("-", "").trim();
+                    mapLink = "\n🗺 الموقع: " + parts[1].trim();
+                }
+
+                const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName || "غير محدد"}\n📞 *الهاتف:* \u200E${String(order.customerPhone || "").replace(/\s+/g, "") || "غير محدد"}\n📍 *العنوان:* ${cleanAddress}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails || "غير محدد"}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLink}`;
                 
                 fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
                   method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },

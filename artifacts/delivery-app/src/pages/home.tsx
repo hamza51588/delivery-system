@@ -126,7 +126,7 @@ export default function Home() {
           const { latitude: lat, longitude: lng } = pos.coords;
           const address = await reverseGeocode(lat, lng);
           const link = "https://maps.google.com/?q=" + lat + "," + lng;
-          form.setValue("address", address, { shouldValidate: true });
+          form.setValue("address", `${address} \n📍 الرابط: ${link}`, { shouldValidate: true });
           setGpsCoords({ lat, lng });
           setGpsLink(link);
           toast({ title: "✅ تم تحديد موقعك بنجاح" });

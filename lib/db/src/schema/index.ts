@@ -4,3 +4,5 @@ export * from "./settings";
 export * from "./drivers";
 export * from "./delivery-areas";
 export * from "./cashiers";
+
+export * from "./promos";

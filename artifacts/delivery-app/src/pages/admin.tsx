@@ -375,8 +375,46 @@ export default function Admin() {
   };
 
   const onChangeStatus = async (id: number, status: string) => {
-    try { await updateOrder.mutateAsync({ id, data: { status } }); toast({ title: "تم تحديث الحالة" }); }
-    catch { toast({ title: "خطأ", variant: "destructive" }); }
+    try {
+      await updateOrder.mutateAsync({ id, data: { status } });
+      toast({ title: "تم تحديث الحالة" });
+      
+      // --- إرسال رسالة عند تحول الطلب إلى في الطريق ---
+      if (status === "delivering") {
+        const order = orders?.find((o: any) => o.id === id);
+        if (order) {
+          const driver = drivers?.find((d: any) => d.id === order.assignedDriverId);
+          let phone = order.customerPhone || "";
+          if (phone.startsWith("7")) phone = "967" + phone;
+          
+          const driverInfo = driver ? `
+
+🛵 *بيانات المندوب:*
+👤 الاسم: ${driver.name}
+📞 الرقم: ${driver.phone || "لا يوجد"}` : "
+
+🛵 سيتم تعيين مندوب قريباً.";
+          
+          // رابط الموقع الرئيسي أو صفحة التتبع
+          const trackLink = window.location.origin;
+          
+          const msg = `مرحباً ${order.customerName}! 📦
+
+طلبك رقم #${order.id} أصبح الآن *في الطريق إليك*! 🚀${driverInfo}
+
+📍 للدخول لموقعنا: ${trackLink}
+
+شكراً لاختيارك المدار السريع!`;
+          
+          fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
+            body: JSON.stringify({ number: phone, text: msg })
+          }).catch(e => console.error("WhatsApp Error:", e));
+        }
+      }
+      // ------------------------------------------------
+    } catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
 
   const onVerifyPayment = async (id: number, verified: boolean) => {

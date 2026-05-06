@@ -384,57 +384,29 @@ export default function Admin() {
         if (order) {
           const driver = drivers?.find((d: any) => d.id === order.assignedDriverId);
           
-          let customerPhone = String(order.customerPhone || "").replace(/\D/g, "");
-          if (customerPhone.startsWith("0")) customerPhone = customerPhone.substring(1);
-          if (customerPhone.startsWith("7")) customerPhone = "967" + customerPhone;
-          
-          const driverInfo = driver ? `\n\n🛵 *بيانات المندوب:*\n👤 الاسم: ${driver.name}\n📞 الرقم: ${driver.phone || "لا يوجد"}` : `\n\n🛵 سيتم تعيين مندوب قريباً.`;
-          const trackLink = window.location.origin;
-          const customerMsg = `مرحباً ${order.customerName}! 📦\n\nطلبك رقم #${order.id} أصبح الآن *في الطريق إليك*! 🚀${driverInfo}\n\n📍 للدخول لموقعنا: ${trackLink}\n\nشكراً لاختيارك المدار السريع!`;
-          
-          fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
-            method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
-            body: JSON.stringify({ number: customerPhone, text: customerMsg })
-          }).catch(e => console.error(e));
-
-          if (driver) {
-            if (!driver.phone) {
-               toast({ title: "تنبيه ⚠️", description: "المندوب لا يملك رقم هاتف مسجل، لم يتم إرسال رسالة له.", variant: "destructive" });
-            } else {
-                let driverPhone = String(driver.phone).replace(/\D/g, "");
-                if (driverPhone.startsWith("0")) driverPhone = driverPhone.substring(1);
-                if (driverPhone.startsWith("7")) driverPhone = "967" + driverPhone;
-                
-                const pMethod = order.paymentMethod === "bank_transfer" ? "تحويل بنكي" : (order.paymentMethod === "cash" ? "كاش (عند الاستلام)" : order.paymentMethod || "غير محدد");
-                const areaName = order.area || order.deliveryArea || order.areaName || "غير محدد";
-                
-                
-          const safePhone = "\u200E" + String(order.customerPhone || "").replace(/\s+/g, "");
-          const mapLine = order.locationLink ? `\n🗺 الموقع: ${order.locationLink}` : "";
-
-          const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName}\n📞 *الهاتف:* ${safePhone}\n📍 *العنوان:* ${order.address}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLine}`;
-
-
-                
-                fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
-                  method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
-                  body: JSON.stringify({ number: driverPhone, text: driverMsg })
-                }).then((res) => {
-                   if(res.ok) toast({ title: "نجاح 🚀", description: `تم إرسال تفاصيل الطلب للمندوب: ${driver.name}` });
-                   else toast({ title: "خطأ", description: `فشل إرسال الرسالة للمندوب، تأكد من صحة رقمه.`, variant: "destructive" });
-                }).catch(e => console.error(e));
-            }
-          } else {
-             toast({ title: "تنبيه ⚠️", description: "لم تقم بتعيين مندوب لهذا الطلب قبل تغيير الحالة!", variant: "destructive" });
+          if (driver && driver.phone) {
+            let driverPhone = String(driver.phone).replace(/\D/g, "");
+            if (driverPhone.startsWith("0")) driverPhone = driverPhone.substring(1);
+            if (driverPhone.startsWith("7")) driverPhone = "967" + driverPhone;
+            
+            const pMethod = order.paymentMethod === "bank_transfer" ? "تحويل بنكي" : (order.paymentMethod === "cash" ? "كاش (عند الاستلام)" : order.paymentMethod || "غير محدد");
+            const areaName = order.area || order.deliveryArea || order.areaName || "غير محدد";
+            
+            // جلب الرابط من الحقل مباشرة
+            const mapLink = order.locationLink ? `\n🗺 الموقع: ${order.locationLink}` : "";
+            const safePhone = "\u200E" + String(order.customerPhone || "").replace(/\s+/g, "");
+            
+            const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName || "غير محدد"}\n📞 *الهاتف:* ${safePhone || "غير محدد"}\n📍 *العنوان:* ${order.address || "غير محدد"}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails || "غير محدد"}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLink}`;
+            
+            fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+              method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
+              body: JSON.stringify({ number: driverPhone, text: driverMsg })
+            }).then(res => {
+                if(res.ok) toast({ title: "تم إرسال الموقع للمندوب ✅" });
+            }).catch(e => console.error(e));
           }
         }
       }
-    } catch { toast({ title: "خطأ", variant: "destructive" }); }
-};
-const onVerifyPayment = async (id: number, verified: boolean) => {
-    try {
-      await updateOrder.mutateAsync({ id, data: { paymentVerified: verified, status: verified ? "delivering" : "pending" } });
-      toast({ title: verified ? "✅ تم قبول السند وتغيير الحالة إلى جاري التوصيل" : "تم إلغاء التحقق" });
     } catch { toast({ title: "خطأ", variant: "destructive" }); }
   };
 

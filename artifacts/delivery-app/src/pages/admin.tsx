@@ -418,7 +418,15 @@ export default function Admin() {
                     mapLine = "\n🗺 الموقع: " + parts[1].trim();
                 }
 
-                const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName || "غير محدد"}\n📞 *الهاتف:* \u200e${String(order.customerPhone || "").replace(/\s+/g, "") || "غير محدد"}\n📍 *العنوان:* ${cleanAddress}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails || "غير محدد"}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLine}`;
+                
+          const rawAddr = String(order.address || "");
+          const hasGps = rawAddr.includes(" [GPS]:");
+          const cleanAddr = hasGps ? rawAddr.split(" [GPS]:")[0] : rawAddr;
+          const gpsLink = hasGps ? "\n🗺 الموقع: " + rawAddr.split(" [GPS]:")[1] : "";
+          const safePhone = "\u200E" + String(order.customerPhone || "").replace(/\s+/g, "");
+
+          const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName}\n📞 *الهاتف:* ${safePhone}\n📍 *العنوان:* ${cleanAddr}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${gpsLink}`;
+
                 
                 fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
                   method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },

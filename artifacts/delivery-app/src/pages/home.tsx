@@ -114,30 +114,19 @@ export default function Home() {
   const selectedArea = form.watch("deliveryArea");
   const selectedAreaData = activeAreas.find(a => a.name === selectedArea);
 
-  const handleLocate = () => {
-    if (!navigator.geolocation) {
-      toast({ title: "متصفحك لا يدعم GPS", variant: "destructive" });
-      return;
-    }
+    const handleLocate = () => {
+    if (!navigator.geolocation) { toast({ title: "GPS غير مدعوم" }); return; }
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude: lat, longitude: lng } = pos.coords;
-          const address = await reverseGeocode(lat, lng);
-          const link = `http://maps.google.com/maps?q=${lat},${lng}`;
-          // دمج الرابط بعلامة مميزة جدا
-          form.setValue("address", address + " [MAP_LINK]: " + link, { shouldValidate: true });
-          setGpsCoords({ lat, lng });
-          setGpsLink(link);
-          toast({ title: "✅ تم تحديد الموقع" });
-        } catch {
-          toast({ title: "تعذر التحديد", variant: "destructive" });
-        } finally { setLocating(false); }
-      },
-      (err) => { setLocating(false); toast({ title: "خطأ GPS" }); },
-      { enableHighAccuracy: false, timeout: 15000 }
-    );
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        const address = await reverseGeocode(lat, lng);
+        const link = `http://maps.google.com/?q=${lat},${lng}`;
+        form.setValue("address", address + " [GPS]:" + link, { shouldValidate: true });
+        setGpsCoords({ lat, lng }); setGpsLink(link);
+        toast({ title: "✅ تم تحديد الموقع" });
+      } catch { toast({ title: "خطأ في العنوان" }); } finally { setLocating(false); }
+    }, () => setLocating(false), { enableHighAccuracy: false, timeout: 15000 });
   };
 
   const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

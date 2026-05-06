@@ -125,8 +125,9 @@ export default function Home() {
         try {
           const { latitude: lat, longitude: lng } = pos.coords;
           const address = await reverseGeocode(lat, lng);
-          const link = "https://www.google.com/maps?q=" + lat + "," + lng;
-          form.setValue(\"address\", address + \" - 📍 الرابط: \" + link, { shouldValidate: true });
+          const link = `https://www.google.com/maps?q=${lat},${lng}`;
+          // دمج الرابط في سطر واحد لتجنب خطأ البناء
+          form.setValue("address", address + " - 📍 الرابط: " + link, { shouldValidate: true });
           setGpsCoords({ lat, lng });
           setGpsLink(link);
           toast({ title: "✅ تم تحديد موقعك بنجاح" });
@@ -136,10 +137,7 @@ export default function Home() {
       },
       (err) => {
         setLocating(false);
-        const msg =
-          err.code === 1 ? "يرجى السماح للموقع بالوصول إلى موقعك من إعدادات المتصفح"
-          : err.code === 2 ? "تعذر تحديد الموقع، تأكد من تفعيل GPS"
-          : "انتهت مهلة تحديد الموقع";
+        const msg = err.code === 1 ? "يرجى السماح بالوصول للموقع" : "تأكد من تفعيل GPS";
         toast({ title: "تعذر تحديد الموقع", description: msg, variant: "destructive" });
       },
       { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }

@@ -391,9 +391,9 @@ export default function Admin() {
 
 🛵 *بيانات المندوب:*
 👤 الاسم: ${driver.name}
-📞 الرقم: ${driver.phone || "لا يوجد"}` : "
+📞 الرقم: ${driver.phone || "لا يوجد"}` : `
 
-🛵 سيتم تعيين مندوب قريباً.";
+🛵 سيتم تعيين مندوب قريباً.`;
           
           // رابط الموقع الرئيسي أو صفحة التتبع
           const trackLink = window.location.origin;

@@ -156,6 +156,27 @@ export default function Home() {
 
     const onSubmit = async (data: FormValues) => {
     try {
+
+      // --- إرسال رسالة واتساب للزبون تلقائياً ---
+      setTimeout(async () => {
+        try {
+          let phone = data.customerPhone || data.phone || data.phoneNumber || "";
+          // إضافة مفتاح اليمن إذا كان الرقم يبدأ بـ 7
+          if (phone.startsWith("7")) phone = "967" + phone;
+          
+          const msg = `مرحباً ${data.customerName || "عزيزي العميل"}! 🚀\nتم استلام طلبك بنجاح في المدار السريع.\n\nجاري معالجة الطلب وسنتواصل معك قريباً.\nشكراً لثقتكم بنا! 📦`;
+          
+          await fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964"
+            },
+            body: JSON.stringify({ number: phone, text: msg })
+          });
+        } catch(e) { console.error("WhatsApp error:", e); }
+      }, 1000); // تأخير ثانية لضمان حفظ الطلب في قاعدة البيانات أولاً
+      // ---------------------------------
       // دمج البنك ورقم الحوالة في الملاحظات لتوثيقها للإدارة
       const finalNotes = data.paymentMethod === "bank_transfer" 
         ? (data.notes ? `${data.notes} \n (البنك: ${selectedBank}${transferNumber ? ' - رقم الحوالة: ' + transferNumber : ''})` : `(البنك: ${selectedBank}${transferNumber ? ' - رقم الحوالة: ' + transferNumber : ''})`)

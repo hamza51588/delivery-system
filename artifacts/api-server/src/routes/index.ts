@@ -6,6 +6,7 @@ import settingsRouter from "./settings";
 import driversRouter from "./drivers";
 import deliveryAreasRouter from "./delivery-areas";
 import cashiersRouter from "./cashiers";
+import promosRouter from "./promos";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(settingsRouter);
 router.use(driversRouter);
 router.use(deliveryAreasRouter);
 router.use(cashiersRouter);
+router.use(promosRouter);
 
 export default router;

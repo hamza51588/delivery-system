@@ -408,24 +408,12 @@ export default function Admin() {
                 const pMethod = order.paymentMethod === "bank_transfer" ? "تحويل بنكي" : (order.paymentMethod === "cash" ? "كاش (عند الاستلام)" : order.paymentMethod || "غير محدد");
                 const areaName = order.area || order.deliveryArea || order.areaName || "غير محدد";
                 
-                let rawAddress = String(order.address || "");
-                let cleanAddress = rawAddress;
-                let mapLine = "";
                 
-                if (rawAddress.includes("[MAP_LINK]: ")) {
-                    let parts = rawAddress.split("[MAP_LINK]: ");
-                    cleanAddress = parts[0].trim();
-                    mapLine = "\n🗺 الموقع: " + parts[1].trim();
-                }
-
-                
-          const rawAddr = String(order.address || "");
-          const hasGps = rawAddr.includes(" [GPS]:");
-          const cleanAddr = hasGps ? rawAddr.split(" [GPS]:")[0] : rawAddr;
-          const gpsLink = hasGps ? "\n🗺 الموقع: " + rawAddr.split(" [GPS]:")[1] : "";
           const safePhone = "\u200E" + String(order.customerPhone || "").replace(/\s+/g, "");
+          const mapLine = order.locationLink ? `\n🗺 الموقع: ${order.locationLink}` : "";
 
-          const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName}\n📞 *الهاتف:* ${safePhone}\n📍 *العنوان:* ${cleanAddr}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${gpsLink}`;
+          const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName}\n📞 *الهاتف:* ${safePhone}\n📍 *العنوان:* ${order.address}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLine}`;
+
 
                 
                 fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {

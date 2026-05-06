@@ -125,7 +125,7 @@ export default function Home() {
         try {
           const { latitude: lat, longitude: lng } = pos.coords;
           const address = await reverseGeocode(lat, lng);
-          const link = "https://maps.google.com/?q=" + lat + "," + lng;
+          const link = "https://www.google.com/maps?q=" + lat + "," + lng;
           form.setValue("address", `${address} \n📍 الرابط: ${link}`, { shouldValidate: true });
           setGpsCoords({ lat, lng });
           setGpsLink(link);

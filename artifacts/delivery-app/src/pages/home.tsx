@@ -170,6 +170,38 @@ export default function Home() {
 
     const onSubmit = async (data: FormValues) => {
     try {
+          // 🚀 [بداية] كود الكوبونات الشرس
+          setTimeout(() => {
+            try {
+              let appliedCode = "";
+              // محاولة أخذ الكود من الذاكرة
+              try { if (promoCode) appliedCode = promoCode; } catch(e) {}
+              // إذا فشل، نأخذه من المربع بالقوة
+              if (!appliedCode) {
+                 let input = document.querySelector("input[placeholder*=\"خصم\"], input[placeholder*=\"كود\"]");
+                 if (input) appliedCode = input.value;
+              }
+
+              if (appliedCode) {
+                 console.log("🎟️ Sending promo usage for:", appliedCode);
+                 fetch((import.meta.env.VITE_API_URL || "") + "/api/promos/use", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code: appliedCode })
+                 });
+                 
+                 // تصفير الواجهة لتجهيز طلب جديد
+                 try { if (typeof setPromoCode === "function") setPromoCode(""); } catch(e) {}
+                 try { if (typeof setDiscount === "function") setDiscount(0); } catch(e) {}
+                 let inputs = document.querySelectorAll("input");
+                 inputs.forEach(inp => { 
+                     if(inp.placeholder.includes("خصم") || inp.placeholder.includes("كود")) inp.value = ""; 
+                 });
+              }
+            } catch(err) { console.error(err); }
+          }, 1500); // تأخير 1.5 ثانية لضمان إرسال الطلب أولاً
+          // 🚀 [نهاية] كود الكوبونات
+
 
       // --- إرسال رسالة واتساب للزبون تلقائياً ---
       setTimeout(async () => {
@@ -536,3 +568,5 @@ export default function Home() {
 
 // Force frontend rebuild update: 1
 // Force frontend rebuild: 1778166391.954245
+
+// Update ID: 1778166850.2207952

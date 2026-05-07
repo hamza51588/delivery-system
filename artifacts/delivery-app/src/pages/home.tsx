@@ -170,37 +170,32 @@ export default function Home() {
 
     const onSubmit = async (data: FormValues) => {
     try {
-          // 🚀 [بداية] كود الكوبونات الشرس
+          // 🚀 [تحديث] كود التنظيف الآلي الشامل
           setTimeout(() => {
             try {
               let appliedCode = "";
-              // محاولة أخذ الكود من الذاكرة
               try { if (promoCode) appliedCode = promoCode; } catch(e) {}
-              // إذا فشل، نأخذه من المربع بالقوة
-              if (!appliedCode) {
-                 let input = document.querySelector("input[placeholder*=\"خصم\"], input[placeholder*=\"كود\"]");
-                 if (input) appliedCode = input.value;
-              }
-
+              
               if (appliedCode) {
-                 console.log("🎟️ Sending promo usage for:", appliedCode);
+                 // 1. إرسال إشارة الاستخدام للسيرفر
                  fetch((import.meta.env.VITE_API_URL || "") + "/api/promos/use", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ code: appliedCode })
-                 });
+                 }).catch(e => console.error(e));
                  
-                 // تصفير الواجهة لتجهيز طلب جديد
+                 // 2. تصفير الذاكرة والقيم
                  try { if (typeof setPromoCode === "function") setPromoCode(""); } catch(e) {}
                  try { if (typeof setDiscount === "function") setDiscount(0); } catch(e) {}
-                 let inputs = document.querySelectorAll("input");
-                 inputs.forEach(inp => { 
-                     if(inp.placeholder.includes("خصم") || inp.placeholder.includes("كود")) inp.value = ""; 
-                 });
+                 
+                 // 3. الضربة القاضية: إعادة تنشيط الصفحة آلياً بعد 2.5 ثانية
+                 // هذا يضمن مسح الكوبون تماماً وتجهيز التطبيق لطلب جديد
+                 setTimeout(() => {
+                    window.location.reload();
+                 }, 2500);
               }
             } catch(err) { console.error(err); }
-          }, 1500); // تأخير 1.5 ثانية لضمان إرسال الطلب أولاً
-          // 🚀 [نهاية] كود الكوبونات
+          }, 1000);
 
 
       // --- إرسال رسالة واتساب للزبون تلقائياً ---
@@ -570,3 +565,5 @@ export default function Home() {
 // Force frontend rebuild: 1778166391.954245
 
 // Update ID: 1778166850.2207952
+
+// Auto-Clean Update: 1778167205.137162

@@ -386,37 +386,46 @@ export default function Admin() {
   const onChangeStatus = async (id: number, status: string) => {
     try {
       await updateOrder.mutateAsync({ id, data: { status } });
-      toast({ title: "تم تحديث الحالة" });
+      toast({ title: "تم تحديث الحالة بنجاح" });
       
       if (status === "delivering") {
         const order = orders?.find((o: any) => o.id === id);
         if (order) {
-          const driver = drivers?.find((d: any) => d.id === order.assignedDriverId);
+          // 1. --- إرسال رسالة تنبيه للزبون ---
+          let customerPhone = String(order.customerPhone || "").replace(/\D/g, "");
+          if (customerPhone.startsWith("0")) customerPhone = customerPhone.substring(1);
+          if (customerPhone.startsWith("7")) customerPhone = "967" + customerPhone;
           
+          const customerMsg = `مرحباً ${order.customerName}! 📦\n\nطلبك رقم #${order.id} أصبح الآن *في الطريق إليك*! 🚀\n\n📍 لتتبع الطلب: ${window.location.origin}\n\nشكراً لاختيارك المدار السريع!`;
+          
+          fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+            method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
+            body: JSON.stringify({ number: customerPhone, text: customerMsg })
+          }).catch(e => console.error("Customer Msg Error:", e));
+
+          // 2. --- إرسال رسالة التفاصيل للسائق ---
+          const driver = drivers?.find((d: any) => d.id === order.assignedDriverId);
           if (driver && driver.phone) {
             let driverPhone = String(driver.phone).replace(/\D/g, "");
             if (driverPhone.startsWith("0")) driverPhone = driverPhone.substring(1);
             if (driverPhone.startsWith("7")) driverPhone = "967" + driverPhone;
             
-            const pMethod = order.paymentMethod === "bank_transfer" ? "تحويل بنكي" : (order.paymentMethod === "cash" ? "كاش (عند الاستلام)" : order.paymentMethod || "غير محدد");
-            const areaName = order.area || order.deliveryArea || order.areaName || "غير محدد";
-            
-            // جلب الرابط من الحقل مباشرة
+            const pMethod = order.paymentMethod === "bank_transfer" ? "تحويل بنكي" : (order.paymentMethod === "cash" ? "كاش" : order.paymentMethod);
+            const areaName = order.area || order.deliveryArea || "غير محدد";
             const mapLink = order.locationLink ? `\n🗺 الموقع: ${order.locationLink}` : "";
             const safePhone = "\u200E" + String(order.customerPhone || "").replace(/\s+/g, "");
-            
-            const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName || "غير محدد"}\n📞 *الهاتف:* ${safePhone || "غير محدد"}\n📍 *العنوان:* ${order.address || "غير محدد"}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails || "غير محدد"}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLink}`;
+
+            const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName}\n📞 *الهاتف:* ${safePhone}\n📍 *العنوان:* ${order.address}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLink}`;
             
             fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
               method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
               body: JSON.stringify({ number: driverPhone, text: driverMsg })
-            }).then(res => {
-                if(res.ok) toast({ title: "تم إرسال الموقع للمندوب ✅" });
-            }).catch(e => console.error(e));
+            }).then(() => toast({ title: "تم إبلاغ السائق والزبون ✅" }))
+            .catch(e => console.error("Driver Msg Error:", e));
           }
         }
       }
-    } catch { toast({ title: "خطأ", variant: "destructive" }); }
+    } catch { toast({ title: "خطأ في التحديث", variant: "destructive" }); }
   };
 
   const onWhatsApp = (order: Order) => {

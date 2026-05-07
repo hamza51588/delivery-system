@@ -79,8 +79,15 @@ router.post("/promos", async (req, res) => {
 router.post("/promos/use", async (req, res) => {
     try {
         const { code } = req.body;
-        await db.execute(sql`UPDATE promo_codes SET used_count = used_count + 1 WHERE code = ${code.toUpperCase()}`);
+        console.log("📝 Increasing usage for:", code);
+        // تحديث العداد بالاسم الصحيح للعمود في PostgreSQL
+        await db.execute(sql`UPDATE promo_codes SET used_count = used_count + 1 WHERE UPPER(code) = ${code.toUpperCase()}`);
         res.json({ success: true });
+    } catch(e) {
+        console.error("❌ Promo Use Error:", e);
+        res.status(500).json({ error: "Failed to update count" });
+    }
+});
     } catch(e) {}
 });
 

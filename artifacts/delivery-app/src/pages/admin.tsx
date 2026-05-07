@@ -592,7 +592,7 @@ return (
   <span className="font-bold text-sm text-gray-800">{driver.name}</span>
   <div className="flex items-center gap-2">
        <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100 font-bold tracking-widest">
-  رمز الدخول: {driver.loginCode || "لا يوجد"}
+  رمز الدخول: {driver.loginCode || "لا يوجد"}</span><button onClick={async (e) => { e.preventDefault(); e.stopPropagation(); if(confirm(`هل أنت متأكد من طرد السائق ${driver.name} نهائياً؟ 🗑️`)) { await fetch((import.meta.env.VITE_API_URL || "") + "/api/drivers/" + driver.id, { method: "DELETE" }); window.location.reload(); } }} className="mr-4 p-1 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-md transition-all border border-red-100" title="حذف السائق"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg></button><span className="hidden">
 </span>
     <span className={`text-[10px] font-bold ${driver.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
       {driver.isAvailable ? '• متوفر الآن' : '• مشغول/غير متاح'}
@@ -883,3 +883,5 @@ return (
 
 // تحديث رقم الهاتف
 // Driver Delete Button Added: 1778167823.8166406
+
+// Add Delete Button: 1778168073.7849746

@@ -54,7 +54,7 @@ export default function Home() {
     if (!promoCode) return;
     setPromoStatus("loading");
     try {
-      const res = await fetch("/api/promos/validate", {
+      const res = await fetch("https://workspaceapi-server-production-af1a.up.railway.app/api/promos/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: promoCode })

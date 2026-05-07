@@ -517,13 +517,14 @@ return (
       )}
 
       <Tabs defaultValue="orders" dir="rtl">
-        <TabsList className="w-full grid grid-cols-5 h-14 bg-gray-100 p-1 rounded-xl mb-8">
+        <TabsList className="w-full grid grid-cols-3 md:grid-cols-6 h-auto md:h-14 bg-gray-100 gap-1 p-1 rounded-xl mb-8">
           {[
             { value: "orders",  icon: <Package className="w-6 h-6 text-orange-600 inline-block ml-1" />, label: "الطلبات" },
             { value: "drivers", icon: <Truck className="w-4 h-4" />, label: "السائقون" },
             { value: "areas",   icon: <MapPin className="w-4 h-4" />, label: "المناطق" },
             { value: "phones",  icon: <PhoneIcon className="w-4 h-4" />, label: "واتساب" },
             { value: "settings",icon: <Settings className="w-4 h-4" />, label: "الإعدادات" },
+            { value: "promos",  icon: <span className="text-lg leading-none">🎟️</span>, label: "الكوبونات" },
           ].map(t => (
             <TabsTrigger key={t.value} value={t.value}
               className="rounded-lg font-bold text-xs sm:text-sm gap-1 data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm">
@@ -824,6 +825,55 @@ return (
               </form>
             </Form>
           )}
+        </TabsContent>
+      
+        {/* ── PROMOS ── */}
+        <TabsContent value="promos" className="animate-in fade-in duration-500">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <span className="text-2xl">🎟️</span> إدارة الكوبونات والعروض
+                </h2>
+            </div>
+            <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 shadow-inner">
+               <p className="text-sm text-blue-900 font-bold mb-4">✨ إضافة كود خصم جديد (فعال فوراً):</p>
+               <form onSubmit={async (e) => {
+                   e.preventDefault();
+                   const fd = new FormData(e.currentTarget);
+                   const code = fd.get("code");
+                   const val = fd.get("val");
+                   if(!code || !val) return;
+                   try {
+                     const res = await fetch("/api/promos", {
+                       method: "POST",
+                       headers: {"Content-Type": "application/json"},
+                       body: JSON.stringify({ code: code, discountValue: val })
+                     });
+                     if(res.ok) {
+                       toast({ title: "تم التفعيل ✅", description: `تم تشغيل كود (${code}) بخصم ${val} ريال.` });
+                       e.currentTarget.reset();
+                     } else {
+                       toast({ title: "فشل الإضافة ❌", description: "الكود مسجل مسبقاً أو يوجد خطأ.", variant: "destructive" });
+                     }
+                   } catch(err) {
+                     toast({ title: "خطأ في الاتصال", variant: "destructive" });
+                   }
+               }} className="flex flex-col md:flex-row gap-4">
+                   <div className="flex-1">
+                       <input name="code" placeholder="الكود (مثال: FAST20)" className="w-full h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" required />
+                   </div>
+                   <div className="flex-1">
+                       <input name="val" type="number" placeholder="قيمة الخصم بالريال (مثال: 500)" className="w-full h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" required />
+                   </div>
+                   <button type="submit" className="h-12 px-8 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                       حفظ وتفعيل
+                   </button>
+               </form>
+            </div>
+            <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-200 text-center">
+                <p className="text-xs text-gray-500 font-bold">💡 بمجرد حفظ الكود، سيتمكن أي زبون من إدخاله في صفحة الطلب وسيتم خصم المبلغ من "قيمة التوصيل" آلياً.</p>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

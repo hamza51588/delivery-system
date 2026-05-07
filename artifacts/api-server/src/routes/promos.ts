@@ -13,7 +13,6 @@ const ensureTable = async () => {
             is_active BOOLEAN DEFAULT true NOT NULL,
             created_at TIMESTAMP DEFAULT NOW() NOT NULL
         );`);
-        // ترقية الجدول ليدعم العدد والوقت
         await db.execute(sql`ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS max_uses INTEGER DEFAULT 0;`);
         await db.execute(sql`ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS used_count INTEGER DEFAULT 0;`);
         await db.execute(sql`ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;`);
@@ -24,7 +23,6 @@ const ensureTable = async () => {
 };
 ensureTable();
 
-// فحص الكوبون للزبون
 router.post("/promos/validate", async (req, res) => {
   try {
     const { code } = req.body;
@@ -37,23 +35,21 @@ router.post("/promos/validate", async (req, res) => {
       return res.status(404).json({ error: "كود الخصم غير صحيح أو معطل" });
     }
     
-    // فحص العدد
     if (promo.max_uses > 0 && promo.used_count >= promo.max_uses) {
       return res.status(400).json({ error: "عذراً، تم الوصول للحد الأقصى لاستخدام هذا الكود 😔" });
     }
     
-    // فحص الوقت
     if (promo.expires_at && new Date() > new Date(promo.expires_at)) {
       return res.status(400).json({ error: "عذراً، انتهت صلاحية هذا الكود ⏱️" });
     }
 
     res.json({ valid: true, discountValue: promo.discount_value, code: promo.code });
   } catch (error) {
+    console.error("Validate Error:", error);
     res.status(500).json({ error: "حدث خطأ في السيرفر" });
   }
 });
 
-// إضافة الكوبون من الإدارة
 router.post("/promos", async (req, res) => {
   try {
     const { code, discountValue, maxUses, expiryDays } = req.body;
@@ -61,7 +57,7 @@ router.post("/promos", async (req, res) => {
     let expiresAt = null;
     if (expiryDays && parseInt(expiryDays) > 0) {
         expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + parseInt(expiryDays)); // حساب يوم الانتهاء
+        expiresAt.setDate(expiresAt.getDate() + parseInt(expiryDays));
     }
     const limit = maxUses && parseInt(maxUses) > 0 ? parseInt(maxUses) : 0;
 
@@ -71,24 +67,21 @@ router.post("/promos", async (req, res) => {
     `);
     res.json({ success: true });
   } catch (error) {
+    console.error("Insert Error:", error);
     res.status(500).json({ error: "الكود موجود مسبقاً أو حدث خطأ" });
   }
 });
 
-// مسار لزيادة عداد الاستخدام (سنربطه لاحقاً)
 router.post("/promos/use", async (req, res) => {
     try {
         const { code } = req.body;
         console.log("📝 Increasing usage for:", code);
-        // تحديث العداد بالاسم الصحيح للعمود في PostgreSQL
         await db.execute(sql`UPDATE promo_codes SET used_count = used_count + 1 WHERE UPPER(code) = ${code.toUpperCase()}`);
         res.json({ success: true });
     } catch(e) {
         console.error("❌ Promo Use Error:", e);
         res.status(500).json({ error: "Failed to update count" });
     }
-});
-    } catch(e) {}
 });
 
 export default router;

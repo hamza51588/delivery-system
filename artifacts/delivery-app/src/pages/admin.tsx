@@ -65,6 +65,11 @@ function PinLock({ correctPin, onUnlock }: { correctPin: string; onUnlock: () =>
     if (pin === correctPin) { onUnlock(); }
     else { setError(true); setPin(""); setTimeout(() => setError(false), 1200); }
   };
+  
+  const onVerifyPayment = async (orderId: number) => {
+    toast({ title: "جاري التطوير 🚧", description: "زر التحقق من الدفع قيد البرمجة حالياً." });
+  };
+
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center gap-8">
       <div className="flex flex-col items-center gap-3">
@@ -91,6 +96,11 @@ function PinLock({ correctPin, onUnlock }: { correctPin: string; onUnlock: () =>
 
 /* ═══ RECEIPT MODAL ═══ */
 function ReceiptModal({ src, onClose }: { src: string; onClose: () => void }) {
+  
+  const onVerifyPayment = async (orderId: number) => {
+    toast({ title: "جاري التطوير 🚧", description: "زر التحقق من الدفع قيد البرمجة حالياً." });
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
@@ -122,6 +132,11 @@ function OrderCard({
   const [showStatus, setShowStatus] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const st = STATUS_MAP[order.status] || STATUS_MAP.pending;
+
+  
+  const onVerifyPayment = async (orderId: number) => {
+    toast({ title: "جاري التطوير 🚧", description: "زر التحقق من الدفع قيد البرمجة حالياً." });
+  };
 
   return (
     <>
@@ -444,6 +459,11 @@ export default function Admin() {
 
   const pendingBank = orders?.filter(o => o.paymentMethod === "bank_transfer" && !o.paymentVerified && o.status !== "cancelled").length || 0;
 
+  
+  const onVerifyPayment = async (orderId: number) => {
+    toast({ title: "جاري التطوير 🚧", description: "زر التحقق من الدفع قيد البرمجة حالياً." });
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
@@ -485,7 +505,12 @@ export default function Admin() {
           {Object.entries(STATUS_MAP).map(([key, val]) => {
             const count = stats.byStatus[key] || 0;
             if (!count) return null;
-            return (
+            
+  const onVerifyPayment = async (orderId: number) => {
+    toast({ title: "جاري التطوير 🚧", description: "زر التحقق من الدفع قيد البرمجة حالياً." });
+  };
+
+  return (
               <span key={key} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${val.color}`}>
                 {val.label}: {count}
               </span>

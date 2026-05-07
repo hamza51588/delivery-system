@@ -844,7 +844,7 @@ return (
                    const val = fd.get("val");
                    if(!code || !val) return;
                    try {
-                     const res = await fetch("https://workspaceapi-server-production-af1a.up.railway.app/api/promos", {
+                     const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/promos", {
                        method: "POST",
                        headers: {"Content-Type": "application/json"},
                        body: JSON.stringify({ code: code, discountValue: val })

@@ -207,7 +207,7 @@ export default function Home() {
           
           const msg = `مرحباً ${data.customerName || "عزيزي العميل"}! 🚀\nتم استلام طلبك بنجاح في المدار السريع.\n\nجاري معالجة الطلب وسنتواصل معك قريباً.\nشكراً لثقتكم بنا! 📦`;
           
-          await fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+          await fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/OrderSender", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

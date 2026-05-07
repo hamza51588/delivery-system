@@ -398,7 +398,7 @@ export default function Admin() {
           
           const customerMsg = `مرحباً ${order.customerName}! 📦\n\nطلبك رقم #${order.id} أصبح الآن *في الطريق إليك*! 🚀\n\n📍 لتتبع الطلب: ${window.location.origin}\n\nشكراً لاختيارك المدار السريع!`;
           
-          fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+          fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/OrderSender", {
             method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
             body: JSON.stringify({ number: customerPhone, text: customerMsg })
           }).catch(e => console.error("Customer Msg Error:", e));
@@ -417,7 +417,7 @@ export default function Admin() {
 
             const driverMsg = `🛵 *طلب توصيل جديد*\n👤 *الاسم:* ${order.customerName}\n📞 *الهاتف:* ${safePhone}\n📍 *العنوان:* ${order.address}\n🗺️ *المنطقة:* ${areaName}\n📦 *الطلب:* ${order.orderDetails}\n📝 *ملاحظات:* ${order.notes || "لا يوجد"}\n💵 *طريقة الدفع:* ${pMethod}\n🚚 *قيمة التوصيل:* ${order.deliveryFee || 0} ريال${mapLink}`;
             
-            fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/FastOrbit", {
+            fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/OrderSender", {
               method: "POST", headers: { "Content-Type": "application/json", "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" },
               body: JSON.stringify({ number: driverPhone, text: driverMsg })
             }).then(() => toast({ title: "تم إبلاغ السائق والزبون ✅" }))

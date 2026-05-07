@@ -847,7 +847,7 @@ return (
                      const res = await fetch((import.meta.env.VITE_API_URL || "") + "/api/promos", {
                        method: "POST",
                        headers: {"Content-Type": "application/json"},
-                       body: JSON.stringify({ code: code, discountValue: val })
+                       body: JSON.stringify({ code: code, discountValue: val, maxUses: fd.get("maxUses"), expiryDays: fd.get("expiryDays") })
                      });
                      if(res.ok) {
                        toast({ title: "تم التفعيل ✅", description: `تم تشغيل كود (${code}) بخصم ${val} ريال.` });
@@ -859,11 +859,11 @@ return (
                      toast({ title: "خطأ في الاتصال", variant: "destructive" });
                    }
                }} className="flex flex-col md:flex-row gap-4">
-                   <div className="flex-1">
-                       <input name="code" placeholder="الكود (مثال: FAST20)" className="w-full h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 uppercase focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" required />
-                   </div>
-                   <div className="flex-1">
-                       <input name="val" type="number" placeholder="قيمة الخصم بالريال (مثال: 500)" className="w-full h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" required />
+                   <div className="grid grid-cols-1 md:grid-cols-4 gap-3 flex-1">
+                       <input name="code" placeholder="الكود (مثال: FAST20)" className="h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 uppercase focus:ring-2 focus:ring-blue-500/20" required />
+                       <input name="val" type="number" placeholder="الخصم بالريال" className="h-12 px-4 border border-blue-200 rounded-xl font-bold text-blue-900 focus:ring-2 focus:ring-blue-500/20" required />
+                       <input name="maxUses" type="number" placeholder="أشخاص (اختياري)" className="h-12 px-4 border border-blue-200 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-blue-500/20" />
+                       <input name="expiryDays" type="number" placeholder="أيام وينتهي؟ (اختياري)" className="h-12 px-4 border border-blue-200 rounded-xl font-bold text-gray-700 focus:ring-2 focus:ring-blue-500/20" />
                    </div>
                    <button type="submit" className="h-12 px-8 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
                        حفظ وتفعيل

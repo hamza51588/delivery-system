@@ -425,21 +425,24 @@ export default function Admin() {
           }
         }
       }
-        if (newStatus === "delivered") {
-          let customerPhone = String(order.customerPhone || "").replace(/\D/g, "");
-          if (customerPhone.startsWith("0")) customerPhone = customerPhone.substring(1);
-          if (customerPhone.startsWith("7")) customerPhone = "967" + customerPhone;
-          
-          const deliveredMsg = `✅ *تم تسليم طلبك بنجاح!*\n\nمرحباً ${order.customerName}،\nشكراً لثقتك بـ *المدار السريع*. نأمل أن تكون الخدمة قد نالت رضاك. ✨\n\nرقم الطلب: #${order.id}`;
-          
-          fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/OrderSender", {
-            method: "POST", 
-            headers: { 
-              "Content-Type": "application/json", 
-              "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" 
-            },
-            body: JSON.stringify({ number: customerPhone, text: deliveredMsg })
-          }).catch(e => console.error("Delivered Msg Error:", e));
+        if (status === "delivered") {
+          const order = orders?.find((o: any) => o.id === id);
+          if (order) {
+            let customerPhone = String(order.customerPhone || "").replace(/\D/g, "");
+            if (customerPhone.startsWith("0")) customerPhone = customerPhone.substring(1);
+            if (customerPhone.startsWith("7")) customerPhone = "967" + customerPhone;
+            
+            const deliveredMsg = `✅ *تم تسليم طلبك بنجاح!*\n\nمرحباً ${order.customerName}،\nشكراً لثقتك بـ *المدار السريع*. نأمل أن تكون الخدمة قد نالت رضاك. ✨\n\nرقم الطلب: #${order.id}`;
+            
+            fetch("https://evolution-api-production-b5ec.up.railway.app/message/sendText/OrderSender", {
+              method: "POST", 
+              headers: { 
+                "Content-Type": "application/json", 
+                "apikey": "24c439073e5f9f9341516dbde6f8783eaf3fc3e639a188ab6924ed90831e9964" 
+              },
+              body: JSON.stringify({ number: customerPhone, text: deliveredMsg })
+            }).catch(e => console.error("Delivered Msg Error:", e));
+          }
         }
 
     } catch { toast({ title: "خطأ في التحديث", variant: "destructive" }); }

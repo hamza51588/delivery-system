@@ -425,7 +425,7 @@ export default function Admin() {
           }
         }
       }
-        if (newStatus === "تم التوصيل") {
+        if (newStatus === "delivered") {
           let customerPhone = String(order.customerPhone || "").replace(/\D/g, "");
           if (customerPhone.startsWith("0")) customerPhone = customerPhone.substring(1);
           if (customerPhone.startsWith("7")) customerPhone = "967" + customerPhone;

@@ -493,6 +493,40 @@ return (
           <Lock className="w-4 h-4" /> قفل
         </Button>
       </div>
+          {/* قسم الإحصائيات الذكي */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 mb-6">
+            {[
+              { 
+                label: "طلبات اليوم", 
+                value: (orders?.filter(o => new Date(o.createdAt).toDateString() === new Date().toDateString()) || []).length,
+                icon: "📦", color: "bg-blue-50 text-blue-700 border-blue-200"
+              },
+              { 
+                label: "كاش اليوم", 
+                value: (orders?.filter(o => o.status === "delivered" && new Date(o.createdAt).toDateString() === new Date().toDateString()) || []).reduce((acc, o) => acc + (Number(o.deliveryFee) || 0), 0).toLocaleString() + " ريال",
+                icon: "💰", color: "bg-green-50 text-green-700 border-green-200"
+              },
+              { 
+                label: "طلبات الشهر", 
+                value: (orders?.filter(o => new Date(o.createdAt).getMonth() === new Date().getMonth() && new Date(o.createdAt).getFullYear() === new Date().getFullYear()) || []).length,
+                icon: "📅", color: "bg-purple-50 text-purple-700 border-purple-200"
+              },
+              { 
+                label: "كاش الشهر", 
+                value: (orders?.filter(o => o.status === "delivered" && new Date(o.createdAt).getMonth() === new Date().getMonth() && new Date(o.createdAt).getFullYear() === new Date().getFullYear()) || []).reduce((acc, o) => acc + (Number(o.deliveryFee) || 0), 0).toLocaleString() + " ريال",
+                icon: "📈", color: "bg-orange-50 text-orange-700 border-orange-200"
+              }
+            ].map((stat, i) => (
+              <div key={i} className={`p-4 rounded-2xl border flex items-center justify-between ${stat.color} shadow-sm`}>
+                <div>
+                  <p className="text-sm font-bold opacity-80">{stat.label}</p>
+                  <h3 className="text-2xl font-black mt-1">{stat.value}</h3>
+                </div>
+                <span className="text-3xl drop-shadow-sm">{stat.icon}</span>
+              </div>
+            ))}
+          </div>
+
 
       {/* Stats Bar */}
       {stats && (

@@ -151,13 +151,29 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
         const { latitude: lat, longitude: lng } = pos.coords;
+        const link = `https://maps.google.com/?q=${lat},${lng}`;
+        setGpsCoords({ lat, lng }); 
+        setGpsLink(link);
+        
+        // استجابة فورية للزبون لكي لا يشعر بالبطء
+        form.setValue("address", "📍 جاري تحديد اسم الشارع...", { shouldValidate: true });
+        
+        // نجلب اسم الشارع، وإذا تأخر لا مشكلة، الرابط موجود!
         const address = await reverseGeocode(lat, lng);
-        const link = `http://maps.google.com/?q=${lat},${lng}`;
-        form.setValue("address", address + " [GPS]:" + link, { shouldValidate: true });
-        setGpsCoords({ lat, lng }); setGpsLink(link);
-        toast({ title: "✅ تم تحديد الموقع" });
-      } catch { toast({ title: "خطأ في العنوان" }); } finally { setLocating(false); }
-    }, () => setLocating(false), { enableHighAccuracy: false, timeout: 15000 });
+        form.setValue("address", address + " - " + link, { shouldValidate: true });
+        toast({ title: "✅ تم تحديد الموقع بنجاح" });
+      } catch { 
+        // في حال فشل جلب اسم الشارع بسبب ضعف النت، نرسل الإحداثيات مباشرة!
+        const { latitude: lat, longitude: lng } = pos.coords;
+        const link = `https://maps.google.com/?q=${lat},${lng}`;
+        form.setValue("address", "موقع دقيق [GPS]: " + link, { shouldValidate: true });
+        toast({ title: "✅ تم تحديد الإحداثيات" });
+      } finally { 
+        setLocating(false); 
+      }
+    }, () => {
+      setLocating(false);
+    }, { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 });
   };
 
   const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

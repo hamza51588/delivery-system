@@ -77,8 +77,8 @@ return (
       <Card className={`w-full max-w-sm border-0 shadow-xl rounded-3xl ${error ? "ring-2 ring-red-400" : ""}`}>
         <CardContent className="p-8 flex flex-col gap-5">
           <input ref={inputRef} type="password" inputMode="numeric" maxLength={8} value={pin}
-            onChange={e => setPin(e.target.value.replace(/\D/g, ""))})}
-            onKeyDown={e => e.key === "Enter" && check()})}
+            onChange={e => setPin(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={e => e.key === "Enter" && check()}
             placeholder="● ● ● ●"
             className="w-full text-center text-3xl tracking-[0.5em] h-16 rounded-2xl border-2 border-gray-200 focus:border-primary focus:outline-none bg-gray-50 font-bold" />
           {error && <p className="text-center text-red-500 font-bold text-sm">❌ الرمز غير صحيح</p>}

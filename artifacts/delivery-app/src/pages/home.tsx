@@ -151,7 +151,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
         const { latitude: lat, longitude: lng } = pos.coords;
-        const link = `https://maps.google.com/?q=${lat},${lng}`;
+        const link = `https://www.google.com/maps?q=${lat},${lng}`;
         setGpsCoords({ lat, lng }); 
         setGpsLink(link);
         
@@ -165,7 +165,7 @@ export default function Home() {
       } catch { 
         // في حال فشل جلب اسم الشارع بسبب ضعف النت، نرسل الإحداثيات مباشرة!
         const { latitude: lat, longitude: lng } = pos.coords;
-        const link = `https://maps.google.com/?q=${lat},${lng}`;
+        const link = `https://www.google.com/maps?q=${lat},${lng}`;
         form.setValue("address", "موقع دقيق [GPS]: " + link, { shouldValidate: true });
         toast({ title: "✅ تم تحديد الإحداثيات" });
       } finally { 

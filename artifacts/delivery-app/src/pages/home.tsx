@@ -173,7 +173,7 @@ export default function Home() {
       }
     }, () => {
       setLocating(false);
-    }, { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 });
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
   };
 
   const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
